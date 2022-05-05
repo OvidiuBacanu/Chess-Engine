@@ -11,28 +11,33 @@ import static Moves.RanksFilesCenter.*;
 public class WhitePawnMoves {
     //PCT = Pre Calculated Tables
 
-    public static List<Integer> ListWhitePawnsMoves(Board board){
-        List<Integer> moves=new ArrayList<>();
+    public static List<Move> ListWhitePawnsPseudolegalMoves(Board board){
+        List<Move> moves=new ArrayList<>();
+        moves.addAll(generatePseudolegalMoves1ForwardWP(board));
+        moves.addAll(generatePseudolegalMoves2ForwardWP(board));
+        moves.addAll(generatePseudolegalMovesCaptureWP(board,true));
+        moves.addAll(generatePseudolegalMovesCaptureWP(board,false));
+        moves.addAll(generatePseudolegalMovesEnpassantWP(board));
         return moves;
     }
 
-    private long PCTWhitePawns1Forward(long white_pawns){
+    public static long PCTWhitePawns1Forward(long white_pawns){
         return white_pawns>>>8;
     }
 
-    private long PCTWhitePawns2Forward(long white_pawns){
+    public static long PCTWhitePawns2Forward(long white_pawns){
         return white_pawns>>>16;
     }
 
-    private long PCTWhitePawnsCaptureRight(long white_pawns){
+    public static long PCTWhitePawnsCaptureRight(long white_pawns){
         return white_pawns>>>7 & ~FILE_A;
     }
 
-    private long PCTWhitePawnsCaptureLeft(long white_pawns){
+    public static long PCTWhitePawnsCaptureLeft(long white_pawns){
         return white_pawns>>>9 & ~FILE_H;
     }
 
-    public List<Move> generatePseudolegalMoves1ForwardWP(Board board){
+    public static List<Move> generatePseudolegalMoves1ForwardWP(Board board){
         List<Move> moves=new ArrayList<>();
         long white_pawns=board.getWhite_pawns();
         long white_pawns_1_forward= PCTWhitePawns1Forward(white_pawns);
@@ -66,7 +71,7 @@ public class WhitePawnMoves {
         return moves;
     }
 
-    public List<Move> generatePseudolegalMoves2ForwardWP(Board board){
+    public static List<Move> generatePseudolegalMoves2ForwardWP(Board board){
         List<Move> moves=new ArrayList<>();
         long white_pawns=board.getWhite_pawns();
         long white_pawns_2_forward= PCTWhitePawns2Forward(white_pawns) & RANK_4;
@@ -85,7 +90,7 @@ public class WhitePawnMoves {
         return moves;
     }
 
-    public List<Move> generatePseudolegalMovesCaptureWP(Board board, boolean right){
+    public static List<Move> generatePseudolegalMovesCaptureWP(Board board, boolean right){
         List<Move> moves=new ArrayList<>();
         long white_pawns_capture=0L;
         long white_pawns=board.getWhite_pawns();
@@ -110,47 +115,26 @@ public class WhitePawnMoves {
             byte square= (byte) Long.numberOfTrailingZeros(possible_moves);
             possible_moves= Utils.popBitFromBitboard(possible_moves, square);
 
-            if(Utils.checkIfSquareIsOne(board.getBlack_pawns(),square))
-                moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)1, (byte)0, false, true, false, false, false));
-
-            if(Utils.checkIfSquareIsOne(board.getBlack_knights(),square))
-                moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)2, (byte)0, false, true, false, false, false));
-
-            if(Utils.checkIfSquareIsOne(board.getBlack_bishops(),square))
-                moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)3, (byte)0, false, true, false, false, false));
-
-            if(Utils.checkIfSquareIsOne(board.getBlack_rooks(),square))
-                moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)4, (byte)0, false, true, false, false, false));
-
-            if(Utils.checkIfSquareIsOne(board.getBlack_queens(),square))
-                moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)5, (byte)0, false, true, false, false, false));
+            byte black_piece_captured=board.getBlackPieceTypeOnSquare(square);
+            moves.add(new Move(square,(byte)(square+plus_square), (byte)1, black_piece_captured, (byte)0, false, true, false, false, false));
 
         }
 
-        //pawn promotion by capture right
+        //pawn promotion by capture right/left
         long possible_moves_promotion= white_pawns_capture & RANK_8 & black_pieces;
         while (possible_moves_promotion!=0){
             byte square= (byte) Long.numberOfTrailingZeros(possible_moves_promotion);
             possible_moves_promotion= Utils.popBitFromBitboard(possible_moves_promotion, square);
 
-            for(byte promoted_piece=2;promoted_piece<6;promoted_piece++) {
-                if(Utils.checkIfSquareIsOne(board.getBlack_knights(),square))
-                    moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)2, promoted_piece, false, true, false, false, true));
+            byte black_piece_captured=board.getBlackPieceTypeOnSquare(square);
+            for(byte promoted_piece=2;promoted_piece<6;promoted_piece++)
+                moves.add(new Move(square,(byte)(square+plus_square), (byte)1, black_piece_captured, promoted_piece, false, true, false, false, true));
 
-                if(Utils.checkIfSquareIsOne(board.getBlack_bishops(),square))
-                    moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)3, promoted_piece, false, true, false, false, true));
-
-                if(Utils.checkIfSquareIsOne(board.getBlack_rooks(),square))
-                    moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)4, promoted_piece, false, true, false, false, true));
-
-                if(Utils.checkIfSquareIsOne(board.getBlack_queens(),square))
-                    moves.add(new Move(square,(byte)(square+plus_square), (byte)1, (byte)5, promoted_piece, false, true, false, false, true));
-            }
         }
         return moves;
     }
 
-    public List<Move> generatePseudolegalMovesEnpassantWP(Board board){
+    public static List<Move> generatePseudolegalMovesEnpassantWP(Board board){
         List<Move> moves=new ArrayList<>();
         long white_pawns=board.getWhite_pawns();
 

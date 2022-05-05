@@ -10,12 +10,7 @@ import static Moves.RanksFilesCenter.*;
 
 public class KingMoves {
     //PCT = Pre Calculated Tables
-    public static List<Integer> ListKingtMoves(Board board){
-        List<Integer> moves=new ArrayList<>();
-        return moves;
-    }
-
-    private long PCTKingMoves(byte square){
+    public static long PCTKingMoves(byte square){
         long moves=0;
         long king= Utils.getBitboardForSquare(square);
         moves |= king << 8;

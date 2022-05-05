@@ -12,11 +12,6 @@ import static Moves.RanksFilesCenter.Diagonal_Masks;
 
 public class BishopMoves {
     //PCT = Pre Calculated Tables
-    public static List<Integer> ListBishopMoves(Board board){
-        List<Integer> moves=new ArrayList<>();
-        return moves;
-    }
-
     public static long PCTBishopMoves(byte square, long occupied_squares){
         long bishop= Utils.getBitboardForSquare(square);
         int diagonal_index=(square / 8) + (square % 8);

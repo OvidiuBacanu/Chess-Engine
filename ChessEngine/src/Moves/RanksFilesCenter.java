@@ -7,6 +7,9 @@ public class RanksFilesCenter {
     public static long FILE_GH=-4557430888798830400L;
     public static long RANK_4=1095216660480L;
     public static long RANK_8=255L;
+    public static long RANK_1=-72057594037927936L;
+    public static long RANK_5=4278190080L;
+
 
     public static long Rank_Masks[] =/*from rank1 to rank8*/
             {

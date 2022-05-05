@@ -1,12 +1,21 @@
 import Board.Board;
-import Moves.Move;
-import Moves.WhitePawnMoves;
+import Moves.*;
 import Utils.Utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static Moves.BishopMoves.PCTBishopMoves;
+import static Moves.KingMoves.PCTKingMoves;
+import static Moves.KnightMoves.PCTKnightMoves;
+import static Moves.QueenMoves.PCTQueenMoves;
+import static Moves.RookMoves.PCTRookMoves;
+
 public class Main {
+
+
+
     public static HashMap<Byte, String>map=new HashMap<>();
     public static void main(String[] args) {
         HashMap<Byte, String>map_files=new HashMap<>();
@@ -31,15 +40,8 @@ public class Main {
         ///////////////////////
         ///////////////////////
         Board board = new Board();
-
-
-        WhitePawnMoves whitePawnMoves= new WhitePawnMoves();
-        List<Move> moves = whitePawnMoves.generatePseudolegalMoves1ForwardWP(board);
-        for(Move move:moves){
-            System.out.println(map.get(move.source_square)+map.get(move.target_square)+ " "+ move.promotion_piece);
-        }
-
-
+        board.setBlack_pawns(Utils.getBitboardForSquare((byte) 0));
+        board.setBlack_knights(Utils.getBitboardForSquare((byte) 31));
 
     }
 

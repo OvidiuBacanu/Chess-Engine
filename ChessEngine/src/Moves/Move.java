@@ -28,5 +28,19 @@ public class Move {
         this.promotion_flag = promotion_flag;
     }
 
-
+    @Override
+    public String toString() {
+        return "Move{" +
+                "target_square=" + target_square +
+                ", source_square=" + source_square +
+                ", piece_moved=" + piece_moved +
+                ", piece_captured=" + piece_captured +
+                ", promotion_piece=" + promotion_piece +
+                ", castling_flag=" + castling_flag +
+                ", capture_flag=" + capture_flag +
+                ", double_push_flag=" + double_push_flag +
+                ", en_passant_flag=" + en_passant_flag +
+                ", promotion_flag=" + promotion_flag +
+                '}';
+    }
 }

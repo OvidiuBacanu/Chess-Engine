@@ -1,5 +1,19 @@
 package Board;
 
+import Moves.BlackPawnMoves;
+import Moves.Move;
+import Moves.WhitePawnMoves;
+import Utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static Moves.BishopMoves.PCTBishopMoves;
+import static Moves.KingMoves.PCTKingMoves;
+import static Moves.KnightMoves.PCTKnightMoves;
+import static Moves.QueenMoves.PCTQueenMoves;
+import static Moves.RookMoves.PCTRookMoves;
+
 public class Board {
     //bitboards will be represented in little endian format
     private long white_pawns;
@@ -209,10 +223,61 @@ public class Board {
         return black_pawns|black_knights|black_bishops|black_rooks|black_queens|black_king;
     }
 
+    public long getOccupiedSquares(){
+        return getWhitePiecesAsBitboard()| getBlackPiecesAsBitboard();
+    }
+
     public long getBlackPiecesPossibleCaptures() {
         return black_pawns|black_knights|black_bishops|black_rooks|black_queens;
     }
 
+    public long getWhitePiecesPossibleCaptures(){
+        return white_pawns|white_knights|white_bishops|white_rooks|white_queens;
+    }
+
+    /*
+            0=none
+            1=pawn
+            2=knight
+            3=bishop
+            4=rook
+            5=queen
+            6=king
+    */
+
+    public byte getBlackPieceTypeOnSquare(byte square){
+        if(Utils.checkIfSquareIsOne(black_pawns,square))
+           return 1;
+        if(Utils.checkIfSquareIsOne(black_knights,square))
+            return 2;
+        if(Utils.checkIfSquareIsOne(black_bishops,square))
+            return 3;
+        if(Utils.checkIfSquareIsOne(black_rooks,square))
+            return 4;
+        if(Utils.checkIfSquareIsOne(black_queens,square))
+            return 5;
+        return 0;
+    }
+
+    public byte getWhitePieceTypeOnSquare(byte square){
+        if(Utils.checkIfSquareIsOne(white_pawns,square))
+            return 1;
+        if(Utils.checkIfSquareIsOne(white_knights,square))
+            return 2;
+        if(Utils.checkIfSquareIsOne(white_bishops,square))
+            return 3;
+        if(Utils.checkIfSquareIsOne(white_rooks,square))
+            return 4;
+        if(Utils.checkIfSquareIsOne(white_queens,square))
+            return 5;
+        return 0;
+    }
+
+    ///////////////////////////////////////
+    ///////////////////////////////////////
+    //////////GETTERS AND SETTERS//////////
+    ///////////////////////////////////////
+    ///////////////////////////////////////
     public long getWhite_pawns() {
         return white_pawns;
     }
@@ -249,7 +314,7 @@ public class Board {
         return white_queens;
     }
 
-    public void setWhite_queen(long white_queen) {
+    public void setWhite_queens(long white_queen) {
         this.white_queens = white_queen;
     }
 
@@ -355,6 +420,158 @@ public class Board {
 
     public void setEn_passant_target_square(byte en_passant_target_square) {
         this.en_passant_target_square = en_passant_target_square;
+    }
+
+    public List<Move> generatePseudolegalMovesForSlidersAndLeapers(byte piece_type, boolean white_turn){
+        long my_pieces;
+        long enemy_pieces;
+        long my_piece_to_move=0;
+        if(white_turn) {
+            my_pieces = getWhitePiecesAsBitboard();
+            enemy_pieces = getBlackPiecesPossibleCaptures();
+            List<Move> moves=new ArrayList<>();
+            switch (piece_type) {
+                case 2 -> {
+                    my_piece_to_move = white_knights;
+                }
+                case 3 -> {
+                    my_piece_to_move = white_bishops;
+                }
+                case 4 -> {
+                    my_piece_to_move = white_rooks;
+                }
+                case 5 -> {
+                    my_piece_to_move = white_queens;
+                }
+                case 6 -> {
+                    my_piece_to_move = white_king;
+                }
+            }
+            while (my_piece_to_move!=0){
+                byte source_square= (byte) Long.numberOfTrailingZeros(my_piece_to_move);
+                my_piece_to_move=Utils.popBitFromBitboard(my_piece_to_move, source_square);
+
+                long possible_moves=0;
+                switch (piece_type) {
+                    case 2 -> {
+                        possible_moves = PCTKnightMoves(source_square) & ~my_pieces;
+                    }
+                    case 3 -> {
+                        possible_moves = PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 4 -> {
+                        possible_moves = PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 5 -> {
+                        possible_moves = PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 6 -> {
+                        possible_moves = PCTKingMoves(source_square) & ~my_pieces;
+                    }
+                }
+
+                while (possible_moves!=0){
+                    byte target_square= (byte) Long.numberOfTrailingZeros(possible_moves);
+                    possible_moves= Utils.popBitFromBitboard(possible_moves, target_square);
+
+                    //if true that's a capture
+                    if(Utils.checkIfSquareIsOne(enemy_pieces,target_square)){
+                        byte black_piece_captured=getBlackPieceTypeOnSquare(target_square);
+                        moves.add(new Move(target_square,source_square, piece_type, black_piece_captured, (byte)0, false, true, false, false, false));
+
+                    }
+
+                    //normal move
+                    else{
+                        moves.add(new Move(target_square,source_square, piece_type, (byte)0, (byte)0, false, false, false, false, false));
+                    }
+                }
+            }
+
+            return moves;
+        }
+        else{
+            my_pieces = getBlackPiecesAsBitboard();
+            enemy_pieces = getWhitePiecesPossibleCaptures();
+            List<Move> moves=new ArrayList<>();
+            switch (piece_type) {
+                case 2 -> {
+                    my_piece_to_move = black_knights;
+                }
+                case 3 -> {
+                    my_piece_to_move = black_bishops;
+                }
+                case 4 -> {
+                    my_piece_to_move = black_rooks;
+                }
+                case 5 -> {
+                    my_piece_to_move = black_queens;
+                }
+                case 6 -> {
+                    my_piece_to_move = black_king;
+                }
+            }
+            while (my_piece_to_move!=0){
+                byte source_square= (byte) Long.numberOfTrailingZeros(my_piece_to_move);
+                my_piece_to_move=Utils.popBitFromBitboard(my_piece_to_move, source_square);
+
+                long possible_moves=0;
+                switch (piece_type) {
+                    case 2 -> {
+                        possible_moves = PCTKnightMoves(source_square) & ~my_pieces;
+                    }
+                    case 3 -> {
+                        possible_moves = PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 4 -> {
+                        possible_moves = PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 5 -> {
+                        possible_moves = PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 6 -> {
+                        possible_moves = PCTKingMoves(source_square) & ~my_pieces;
+                    }
+                }
+
+                while (possible_moves!=0){
+                    byte target_square= (byte) Long.numberOfTrailingZeros(possible_moves);
+                    possible_moves= Utils.popBitFromBitboard(possible_moves, target_square);
+
+                    //if true that's a capture
+                    if(Utils.checkIfSquareIsOne(enemy_pieces,target_square)){
+                        byte white_piece_captured=getWhitePieceTypeOnSquare(target_square);
+                        moves.add(new Move(target_square,source_square, piece_type, white_piece_captured, (byte)0, false, true, false, false, false));
+
+                    }
+
+                    //normal move
+                    else{
+                        moves.add(new Move(target_square,source_square, piece_type, (byte)0, (byte)0, false, false, false, false, false));
+                    }
+                }
+            }
+
+            return moves;
+        }
+    }
+
+    public List<Move> generatePseudolegalMovesForWhite(){
+        List<Move> moves=new ArrayList<>();
+        for(byte piece=2;piece<7;piece++){
+            moves.addAll(generatePseudolegalMovesForSlidersAndLeapers(piece,true));
+        }
+        moves.addAll(WhitePawnMoves.ListWhitePawnsPseudolegalMoves(this));
+        return moves;
+    }
+
+    public List<Move> generatePseudolegalMovesForBlack(){
+        List<Move> moves=new ArrayList<>();
+        for(byte piece=2;piece<7;piece++){
+            moves.addAll(generatePseudolegalMovesForSlidersAndLeapers(piece,false));
+        }
+        moves.addAll(BlackPawnMoves.ListBlackPawnsPseudolegalMoves(this));
+        return moves;
     }
 
 

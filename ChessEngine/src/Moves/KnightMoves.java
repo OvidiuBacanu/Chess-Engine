@@ -10,12 +10,7 @@ import static Moves.RanksFilesCenter.*;
 
 public class KnightMoves {
     //PCT = Pre Calculated Tables
-    public static List<Integer> ListKnightMoves(Board board){
-        List<Integer> moves=new ArrayList<>();
-        return moves;
-    }
-
-    private long PCTKnightMoves(byte square){
+    public static long PCTKnightMoves(byte square){
         long moves=0;
         long knight=Utils.getBitboardForSquare(square);
         moves |= knight<<17 & ~ FILE_A;
