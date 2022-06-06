@@ -51,73 +51,86 @@ public class Utils {
             System.out.print((8-rank)+"   ");
             for(int file=0;file<8;file++)
             {
+                boolean piece_found=false;
                 int square=rank*8+file;
 
                 long value_on_square=(wp  & (1L << square));
-                if(value_on_square!=0)
+                if(value_on_square!=0) {
                     System.out.print("♟ ");
-                else{
-                    value_on_square=(wn  & (1L << square));
-                    if(value_on_square!=0)
-                        System.out.print("♞ ");
-                    else {
-                        value_on_square = (wb & (1L << square));
-                        if (value_on_square != 0)
-                            System.out.print("♝ ");
-                        else{
-                            value_on_square = (wr & (1L << square));
-                            if (value_on_square != 0)
-                                System.out.print("♜ ");
-                            else{
-                                value_on_square = (wq & (1L << square));
-                                if (value_on_square != 0)
-                                    System.out.print("♛ ");
-                                else{
-                                    value_on_square = (wk & (1L << square));
-                                    if (value_on_square != 0)
-                                        System.out.print("♚ ");
-                                    else{
-                                        value_on_square = (bp & (1L << square));
-                                        if (value_on_square != 0)
-                                            System.out.print("♙ ");
-                                        else {
-                                            value_on_square = (bn & (1L << square));
-                                            if (value_on_square != 0)
-                                                System.out.print("♘ ");
-                                            else {
-                                                value_on_square = (bb & (1L << square));
-                                                if (value_on_square != 0)
-                                                    System.out.print("♗ ");
-                                                else {
-                                                    value_on_square = (br & (1L << square));
-                                                    if (value_on_square != 0)
-                                                        System.out.print("♖ ");
-                                                    else {
-                                                        value_on_square = (bq & (1L << square));
-                                                        if (value_on_square != 0)
-                                                            System.out.print("♕ ");
-                                                        else {
-                                                            value_on_square = (bk & (1L << square));
-                                                            if (value_on_square != 0)
-                                                                System.out.print("♔ ");
-                                                            else
-                                                                System.out.print("\uD83D\uDEA9 ");
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    piece_found=true;
                 }
+
+                value_on_square=(wn  & (1L << square));
+                if(value_on_square!=0){
+                    System.out.print("♞ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (wb & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♝ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (wr & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♜ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (wq & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♛ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (wk & (1L << square));
+                if (value_on_square != 0) {
+                    piece_found=true;
+                    System.out.print("♚ ");
+                }
+
+                value_on_square = (bp & (1L << square));
+                if (value_on_square != 0) {
+                    piece_found=true;
+                    System.out.print("♙ ");
+                }
+
+                value_on_square = (bn & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♘ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (bb & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♗ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (br & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♖ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (bq & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♕ ");
+                    piece_found=true;
+                }
+
+                value_on_square = (bk & (1L << square));
+                if (value_on_square != 0) {
+                    System.out.print("♔ ");
+                    piece_found=true;
+                }
+
+                if(!piece_found)
+                    System.out.print("\uD83D\uDEA9 ");
             }
             System.out.println();
         }
         System.out.println("\n    A  B  C D  E  F G  H");
     }
-
-
 }

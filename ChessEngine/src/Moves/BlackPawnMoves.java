@@ -108,7 +108,7 @@ public class BlackPawnMoves {
         long white_pieces= board.getWhitePiecesPossibleCaptures();
 
         //normal possible moves
-        long possible_moves= black_pawns_capture &~RANK_8 & white_pieces;
+        long possible_moves= black_pawns_capture &~RANK_1 & white_pieces;
 
         while (possible_moves!=0){
             byte square= (byte) Long.numberOfTrailingZeros(possible_moves);
@@ -120,7 +120,7 @@ public class BlackPawnMoves {
         }
 
         //pawn promotion by capture right/left
-        long possible_moves_promotion= black_pawns_capture & RANK_8 & white_pieces;
+        long possible_moves_promotion= black_pawns_capture & RANK_1 & white_pieces;
         while (possible_moves_promotion!=0){
             byte square= (byte) Long.numberOfTrailingZeros(possible_moves_promotion);
             possible_moves_promotion= Utils.popBitFromBitboard(possible_moves_promotion, square);
@@ -140,11 +140,12 @@ public class BlackPawnMoves {
         long black_pawns_capture_left= PCTBlackPawnsCaptureLeft(black_pawns);
 
         byte en_passant_target_square=board.getEn_passant_target_square();
-        if(Utils.checkIfSquareIsOne(black_pawns_capture_right, en_passant_target_square))
-            moves.add(new Move(en_passant_target_square,(byte)(en_passant_target_square-9), (byte)1, (byte)1, (byte)0, false, true, false, true, false));
-        if(Utils.checkIfSquareIsOne(black_pawns_capture_left, en_passant_target_square))
-            moves.add(new Move(en_passant_target_square,(byte)(en_passant_target_square-7), (byte)1, (byte)1, (byte)0, false, true, false, true, false));
-
+        if((Utils.getBitboardForSquare((byte) (en_passant_target_square-8)) & RANK_4)!=0) {
+            if (Utils.checkIfSquareIsOne(black_pawns_capture_right, en_passant_target_square))
+                moves.add(new Move(en_passant_target_square, (byte) (en_passant_target_square - 9), (byte) 1, (byte) 1, (byte) 0, false, true, false, true, false));
+            if (Utils.checkIfSquareIsOne(black_pawns_capture_left, en_passant_target_square))
+                moves.add(new Move(en_passant_target_square, (byte) (en_passant_target_square - 7), (byte) 1, (byte) 1, (byte) 0, false, true, false, true, false));
+        }
         return moves;
     }
 }

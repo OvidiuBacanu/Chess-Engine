@@ -5,13 +5,13 @@ import Moves.Move;
 import Moves.WhitePawnMoves;
 import Utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static Moves.BishopMoves.PCTBishopMoves;
 import static Moves.KingMoves.PCTKingMoves;
 import static Moves.KnightMoves.PCTKnightMoves;
 import static Moves.QueenMoves.PCTQueenMoves;
+import static Moves.RanksFilesCenter.*;
 import static Moves.RookMoves.PCTRookMoves;
 
 public class Board {
@@ -212,7 +212,111 @@ public class Board {
 
         white_turn=true;
 
-        en_passant_target_square=0;
+        en_passant_target_square=-1;
+    }
+
+    public Board(long white_pawns, long white_knights, long white_bishops, long white_rooks, long white_queens, long white_king, long black_pawns, long black_knights, long black_bishops, long black_rooks, long black_queens, long black_king, boolean white_castling_KS_right, boolean white_castling_QS_right, boolean black_castling_KS_right, boolean black_castling_QS_right, boolean white_turn, byte en_passant_target_square) {
+        this.white_pawns = white_pawns;
+        this.white_knights = white_knights;
+        this.white_bishops = white_bishops;
+        this.white_rooks = white_rooks;
+        this.white_queens = white_queens;
+        this.white_king = white_king;
+        this.black_pawns = black_pawns;
+        this.black_knights = black_knights;
+        this.black_bishops = black_bishops;
+        this.black_rooks = black_rooks;
+        this.black_queens = black_queens;
+        this.black_king = black_king;
+        this.white_castling_KS_right = white_castling_KS_right;
+        this.white_castling_QS_right = white_castling_QS_right;
+        this.black_castling_KS_right = black_castling_KS_right;
+        this.black_castling_QS_right = black_castling_QS_right;
+        this.white_turn = white_turn;
+        this.en_passant_target_square = en_passant_target_square;
+    }
+
+    public Board(String fen){
+        int charIndex = 0;
+        int boardIndex = 0;
+        while (fen.charAt(charIndex) != ' ')
+        {
+            switch (fen.charAt(charIndex++))
+            {
+                case 'P': white_pawns |= (1L << boardIndex++);
+                    break;
+                case 'p': black_pawns |= (1L << boardIndex++);
+                    break;
+                case 'N': white_knights |= (1L << boardIndex++);
+                    break;
+                case 'n': black_knights |= (1L << boardIndex++);
+                    break;
+                case 'B': white_bishops |= (1L << boardIndex++);
+                    break;
+                case 'b': black_bishops |= (1L << boardIndex++);
+                    break;
+                case 'R': white_rooks |= (1L << boardIndex++);
+                    break;
+                case 'r': black_rooks |= (1L << boardIndex++);
+                    break;
+                case 'Q': white_queens |= (1L << boardIndex++);
+                    break;
+                case 'q': black_queens |= (1L << boardIndex++);
+                    break;
+                case 'K': white_king |= (1L << boardIndex++);
+                    break;
+                case 'k': black_king |= (1L << boardIndex++);
+                    break;
+//                case '/':
+//                    break;
+                case '1': boardIndex++;
+                    break;
+                case '2': boardIndex += 2;
+                    break;
+                case '3': boardIndex += 3;
+                    break;
+                case '4': boardIndex += 4;
+                    break;
+                case '5': boardIndex += 5;
+                    break;
+                case '6': boardIndex += 6;
+                    break;
+                case '7': boardIndex += 7;
+                    break;
+                case '8': boardIndex += 8;
+                    break;
+                default:
+                    break;
+            }
+        }
+        white_turn = (fen.charAt(++charIndex) == 'w');
+        charIndex += 2;
+        while (fen.charAt(charIndex) != ' ')
+        {
+            switch (fen.charAt(charIndex++))
+            {
+                case '-':
+                    break;
+                case 'K': white_castling_KS_right = true;
+                    break;
+                case 'Q': white_castling_QS_right = true;
+                    break;
+                case 'k': black_castling_KS_right = true;
+                    break;
+                case 'q': black_castling_QS_right = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+//        if (fen.charAt(++charIndex) != '-')
+//        {
+//            en_passant_target_square = FileMasks8[fen.charAt(charIndex++) - 'a'];
+//        }
+    }
+
+    public Board getCopyBoard(){
+        return new Board(this.white_pawns,this.white_knights,this.white_bishops,this.white_rooks,this.white_queens,this.white_king,this.black_pawns, this.black_knights, this.black_bishops, this.black_rooks, this.black_queens, this.black_king, this.white_castling_KS_right,this.white_castling_QS_right, this.black_castling_KS_right,this.black_castling_QS_right,this.white_turn,this.en_passant_target_square);
     }
 
     public long getWhitePiecesAsBitboard(){
@@ -556,6 +660,170 @@ public class Board {
         }
     }
 
+    public boolean isWhiteKingInCheck(long black_attacks){
+        return (white_king & black_attacks)==white_king;
+    }
+
+    public boolean isBlackKingInCheck(long white_attacks){
+        return (black_king & white_attacks)==black_king;
+    }
+
+    public List<Move> generateLegalCastlingMovesWhite(){
+        List<Move> moves=new ArrayList<>();
+        long black_attacks;
+        boolean white_king_in_check;
+        long occupied_squares=getOccupiedSquares();
+
+        if(white_castling_KS_right) {
+            if ((occupied_squares & Squares_FG_1) == 0) {
+                black_attacks = getBlackAttacksAsBitboard();
+                white_king_in_check = isWhiteKingInCheck(black_attacks);
+                if ((black_attacks & Squares_FG_1) == 0 && !white_king_in_check) {
+                    moves.add(new Move((byte) 62, (byte) 60, (byte) 6, (byte) 0, (byte) 0,true, false,false,false,false));
+                }
+            }
+        }
+
+        if(white_castling_QS_right) {
+            if ((occupied_squares & Squares_BCD_1) == 0) {
+                black_attacks = getBlackAttacksAsBitboard();
+                white_king_in_check = isWhiteKingInCheck(black_attacks);
+                if ((black_attacks & Squares_CD_1) == 0 && !white_king_in_check) {
+                    moves.add(new Move((byte) 58, (byte) 60, (byte) 6, (byte) 0, (byte) 0,true, false,false,false,false));
+                }
+            }
+        }
+        return moves;
+    }
+
+    public List<Move> generateLegalCastlingMovesBlack(){
+        List<Move> moves=new ArrayList<>();
+        long white_attacks;
+        boolean black_king_in_check;
+        long occupied_squares=getOccupiedSquares();
+
+        if(black_castling_KS_right) {
+            if ((occupied_squares & Squares_FG_8) == 0) {
+                white_attacks = getWhiteAttacksAsBitboard();
+                black_king_in_check = isBlackKingInCheck(white_attacks);
+                if ((white_attacks & Squares_FG_8) == 0 && !black_king_in_check) {
+                    moves.add(new Move((byte) 6, (byte) 4, (byte) 6, (byte) 0, (byte) 0,true, false,false,false,false));
+                }
+            }
+        }
+
+        if(black_castling_QS_right) {
+            if ((occupied_squares & Squares_BCD_8) == 0) {
+                white_attacks = getWhiteAttacksAsBitboard();
+                black_king_in_check = isBlackKingInCheck(white_attacks);
+
+                if ((white_attacks & Squares_CD_8) == 0 && !black_king_in_check) {
+                    moves.add(new Move((byte) 2, (byte) 4, (byte) 6, (byte) 0, (byte) 0,true, false,false,false,false));
+                }
+            }
+        }
+        return moves;
+    }
+
+    public long getBlackAttacksAsBitboard() {
+        long black_attacks=BlackPawnMoves.PCTBlackPawnsCaptureLeft(black_pawns) | BlackPawnMoves.PCTBlackPawnsCaptureRight(black_pawns);
+        long my_pieces=getBlackPiecesAsBitboard();
+        long my_piece_to_move=0;
+        for(byte piece=2;piece<7;piece++){
+            switch (piece) {
+                case 2 -> {
+                    my_piece_to_move = black_knights;
+                }
+                case 3 -> {
+                    my_piece_to_move = black_bishops;
+                }
+                case 4 -> {
+                    my_piece_to_move = black_rooks;
+                }
+                case 5 -> {
+                    my_piece_to_move = black_queens;
+                }
+                case 6 -> {
+                    my_piece_to_move = black_king;
+                }
+            }
+            while (my_piece_to_move!=0) {
+                byte source_square = (byte) Long.numberOfTrailingZeros(my_piece_to_move);
+                my_piece_to_move = Utils.popBitFromBitboard(my_piece_to_move, source_square);
+
+                switch (piece) {
+                    case 2 -> {
+                        black_attacks|= PCTKnightMoves(source_square) & ~my_pieces;
+                    }
+                    case 3 -> {
+                        black_attacks|= PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 4 -> {
+                        black_attacks|= PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 5 -> {
+                        black_attacks|= PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 6 -> {
+                        black_attacks|= PCTKingMoves(source_square) & ~my_pieces;
+                    }
+                }
+            }
+
+        }
+        return black_attacks;
+    }
+
+    public long getWhiteAttacksAsBitboard() {
+        long white_attacks=WhitePawnMoves.PCTWhitePawnsCaptureLeft(white_pawns) | WhitePawnMoves.PCTWhitePawnsCaptureRight(white_pawns);
+        long my_pieces=getWhitePiecesAsBitboard();
+        long my_piece_to_move=0;
+        for(byte piece=2;piece<7;piece++){
+            switch (piece) {
+                case 2 -> {
+                    my_piece_to_move = white_knights;
+                }
+                case 3 -> {
+                    my_piece_to_move = white_bishops;
+                }
+                case 4 -> {
+                    my_piece_to_move = white_rooks;
+                }
+                case 5 -> {
+                    my_piece_to_move = white_queens;
+                }
+                case 6 -> {
+                    my_piece_to_move = white_king;
+                }
+            }
+            while (my_piece_to_move!=0) {
+                byte source_square = (byte) Long.numberOfTrailingZeros(my_piece_to_move);
+                my_piece_to_move = Utils.popBitFromBitboard(my_piece_to_move, source_square);
+
+                switch (piece) {
+                    case 2 -> {
+                        white_attacks|= PCTKnightMoves(source_square) & ~my_pieces;
+                    }
+                    case 3 -> {
+                        white_attacks|= PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 4 -> {
+                        white_attacks|= PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 5 -> {
+                        white_attacks|= PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    }
+                    case 6 -> {
+                        white_attacks|= PCTKingMoves(source_square) & ~my_pieces;
+                    }
+                }
+            }
+
+        }
+        return white_attacks;
+
+    }
+
     public List<Move> generatePseudolegalMovesForWhite(){
         List<Move> moves=new ArrayList<>();
         for(byte piece=2;piece<7;piece++){
@@ -574,5 +842,435 @@ public class Board {
         return moves;
     }
 
+    public List<Move> generateLegalMovesForWhite(){
+        List<Move> legal_moves=generateLegalCastlingMovesWhite();
+        List<Move> pseudolegal_moves=generatePseudolegalMovesForWhite();
+        for(Move move:pseudolegal_moves){
+            //make pseudolegal move
+            makePseudolegalMoveWhite(move);
 
+            //check if the king is in check
+            //if the king is not in check, then this is a legal move
+            long black_attacks=getBlackAttacksAsBitboard();
+            if(!isWhiteKingInCheck(black_attacks))
+                legal_moves.add(move);
+
+            //undo move
+            undoPseudolegalMoveWhite(move);
+        }
+        return legal_moves;
+    }
+
+    public List<Move> generateLegalMovesForBlack(){
+        List<Move> legal_moves=generateLegalCastlingMovesBlack();
+        List<Move> pseudolegal_moves=generatePseudolegalMovesForBlack();
+        for(Move move:pseudolegal_moves){
+            //make pseudolegal move
+            makePseudolegalMoveBlack(move);
+
+            //check if the king is in check
+            //if the king is not in check, then this is a legal move
+            long white_attacks=getWhiteAttacksAsBitboard();
+            if(!isBlackKingInCheck(white_attacks))
+                legal_moves.add(move);
+
+            //undo move
+            undoPseudolegalMoveBlack(move);
+        }
+        return legal_moves;
+    }
+
+    public void makePseudolegalMoveWhite(Move move){
+        switch (move.piece_moved) {
+            case 1 -> {
+                if(move.promotion_flag){
+                    white_pawns=Utils.popBitFromBitboard(white_pawns,move.source_square);
+                    switch (move.promotion_piece){
+                        case 2 -> {
+                            white_knights|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                        case 3 -> {
+                            white_bishops|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                        case 4 -> {
+                            white_rooks|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                        case 5 -> {
+                            white_queens|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                    }
+                }
+                else
+                    white_pawns=Utils.popBitFromBitboard(white_pawns,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 2 -> {
+                white_knights=Utils.popBitFromBitboard(white_knights,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 3 -> {
+                white_bishops=Utils.popBitFromBitboard(white_bishops,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 4 -> {
+                white_rooks=Utils.popBitFromBitboard(white_rooks,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 5 -> {
+                white_queens=Utils.popBitFromBitboard(white_queens,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 6 -> {
+                white_king=Utils.popBitFromBitboard(white_king,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+        }
+
+        if(move.capture_flag){
+            switch (move.piece_captured) {
+                case 1 -> {
+                    if(move.en_passant_flag)
+                        black_pawns = Utils.popBitFromBitboard(black_pawns, (byte) (move.target_square+8));
+                    else
+                        black_pawns = Utils.popBitFromBitboard(black_pawns, move.target_square);
+                }
+                case 2 -> {
+                    black_knights = Utils.popBitFromBitboard(black_knights, move.target_square);
+                }
+                case 3 -> {
+                    black_bishops = Utils.popBitFromBitboard(black_bishops, move.target_square);
+                }
+                case 4 -> {
+                    black_rooks = Utils.popBitFromBitboard(black_rooks, move.target_square);
+                }
+                case 5 -> {
+                    black_queens = Utils.popBitFromBitboard(black_queens, move.target_square);
+                }
+            }
+
+        }
+
+    }
+
+    public void undoPseudolegalMoveWhite(Move move){
+        switch (move.piece_moved) {
+            case 1 -> {
+                if(move.promotion_flag){
+                    white_pawns|=Utils.getBitboardForSquare(move.source_square);
+                    switch (move.promotion_piece){
+                        case 2 -> {
+                            white_knights=Utils.popBitFromBitboard(white_knights,move.target_square);
+                        }
+                        case 3 -> {
+                            white_bishops=Utils.popBitFromBitboard(white_bishops,move.target_square);
+                        }
+                        case 4 -> {
+                            white_rooks=Utils.popBitFromBitboard(white_rooks,move.target_square);
+                        }
+                        case 5 -> {
+                            white_queens=Utils.popBitFromBitboard(white_queens,move.target_square);
+                        }
+                    }
+                }
+                else
+                    white_pawns=Utils.popBitFromBitboard(white_pawns,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 2 -> {
+                white_knights=Utils.popBitFromBitboard(white_knights,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 3 -> {
+                white_bishops=Utils.popBitFromBitboard(white_bishops,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 4 -> {
+                white_rooks=Utils.popBitFromBitboard(white_rooks,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 5 -> {
+                white_queens=Utils.popBitFromBitboard(white_queens,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 6 -> {
+                white_king=Utils.popBitFromBitboard(white_king,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+        }
+
+        if(move.capture_flag){
+            switch (move.piece_captured) {
+                case 1 -> {
+                    if(move.en_passant_flag)
+                        black_pawns  |= Utils.getBitboardForSquare((byte) (move.target_square+8));
+                    else
+                        black_pawns |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 2 -> {
+                    black_knights |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 3 -> {
+                    black_bishops |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 4 -> {
+                    black_rooks |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 5 -> {
+                    black_queens |= Utils.getBitboardForSquare(move.target_square);
+                }
+            }
+        }
+    }
+
+    public void makePseudolegalMoveBlack(Move move){
+        switch (move.piece_moved) {
+            case 1 -> {
+                if(move.promotion_flag){
+                    black_pawns=Utils.popBitFromBitboard(black_pawns,move.source_square);
+                    switch (move.promotion_piece){
+                        case 2 -> {
+                            black_knights|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                        case 3 -> {
+                            black_bishops|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                        case 4 -> {
+                            black_rooks|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                        case 5 -> {
+                            black_queens|= Utils.getBitboardForSquare(move.target_square);
+                        }
+                    }
+                }
+                else
+                    black_pawns=Utils.popBitFromBitboard(black_pawns,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 2 -> {
+                black_knights=Utils.popBitFromBitboard(black_knights,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 3 -> {
+                black_bishops=Utils.popBitFromBitboard(black_bishops,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 4 -> {
+                black_rooks=Utils.popBitFromBitboard(black_rooks,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 5 -> {
+                black_queens=Utils.popBitFromBitboard(black_queens,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+            case 6 -> {
+                black_king=Utils.popBitFromBitboard(black_king,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            }
+        }
+
+        if(move.capture_flag){
+            switch (move.piece_captured) {
+                case 1 -> {
+                    if(move.en_passant_flag)
+                        white_pawns = Utils.popBitFromBitboard(white_pawns, (byte) (move.target_square-8));
+                    else
+                        white_pawns = Utils.popBitFromBitboard(white_pawns, move.target_square);
+                }
+                case 2 -> {
+                    white_knights = Utils.popBitFromBitboard(white_knights, move.target_square);
+                }
+                case 3 -> {
+                    white_bishops = Utils.popBitFromBitboard(white_bishops, move.target_square);
+                }
+                case 4 -> {
+                    white_rooks = Utils.popBitFromBitboard(white_rooks, move.target_square);
+                }
+                case 5 -> {
+                    white_queens = Utils.popBitFromBitboard(white_queens, move.target_square);
+                }
+            }
+        }
+    }
+
+    public void undoPseudolegalMoveBlack(Move move){
+        switch (move.piece_moved) {
+            case 1 -> {
+                if(move.promotion_flag){
+                    black_pawns|=Utils.getBitboardForSquare(move.source_square);
+                    switch (move.promotion_piece){
+                        case 2 -> {
+                            black_knights=Utils.popBitFromBitboard(black_knights,move.target_square);
+                        }
+                        case 3 -> {
+                            black_bishops=Utils.popBitFromBitboard(black_bishops,move.target_square);
+                        }
+                        case 4 -> {
+                            black_rooks=Utils.popBitFromBitboard(black_rooks,move.target_square);
+                        }
+                        case 5 -> {
+                            black_queens=Utils.popBitFromBitboard(black_queens,move.target_square);
+                        }
+                    }
+                }
+                else
+                    black_pawns=Utils.popBitFromBitboard(black_pawns,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 2 -> {
+                black_knights=Utils.popBitFromBitboard(black_knights,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 3 -> {
+                black_bishops=Utils.popBitFromBitboard(black_bishops,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 4 -> {
+                black_rooks=Utils.popBitFromBitboard(black_rooks,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 5 -> {
+                black_queens=Utils.popBitFromBitboard(black_queens,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+            case 6 -> {
+                black_king=Utils.popBitFromBitboard(black_king,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            }
+        }
+
+        if(move.capture_flag){
+            switch (move.piece_captured) {
+                case 1 -> {
+                    if(move.en_passant_flag)
+                        white_pawns  |= Utils.getBitboardForSquare((byte) (move.target_square-8));
+                    else
+                        white_pawns |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 2 -> {
+                    white_knights |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 3 -> {
+                    white_bishops |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 4 -> {
+                    white_rooks |= Utils.getBitboardForSquare(move.target_square);
+                }
+                case 5 -> {
+                    white_queens |= Utils.getBitboardForSquare(move.target_square);
+                }
+            }
+        }
+    }
+
+    public void makeMove(Move move){
+        if(white_turn){
+            if(!move.castling_flag) {
+                makePseudolegalMoveWhite(move);
+            }
+            white_turn=false;
+
+            //update en_passant if move was a pawn double push move
+            if(move.double_push_flag)
+                en_passant_target_square= (byte) (move.target_square+8);
+            else{
+                en_passant_target_square=-1;
+
+                //if the piece moved was the king update castling rights to false
+                if(move.piece_moved==6){
+                    white_castling_KS_right=false;
+                    white_castling_QS_right=false;
+                }
+
+                //if the piece moves was a rook update castling rights to false
+                if (move.piece_moved==4){
+                    if(move.source_square==63)
+                        white_castling_KS_right=false;
+                    else
+                        if(move.source_square==56)
+                            white_castling_QS_right=false;
+                }
+
+                //if the opponet's rook was captured update castling rights to false
+                if(move.piece_captured==4) {
+                    if (move.target_square == 7)
+                        black_castling_KS_right = false;
+                    else if (move.target_square == 0)
+                        black_castling_QS_right = false;
+                }
+
+                //update pieces after castling
+                if(move.castling_flag){
+                    if(move.target_square==62){
+                        white_rooks=Utils.popBitFromBitboard(white_rooks, (byte) 63) | Utils.getBitboardForSquare((byte) 61);
+                        white_king=white_king<<2;
+                    }
+                    if(move.target_square==58){
+                        white_rooks=Utils.popBitFromBitboard(white_rooks, (byte) 56) | Utils.getBitboardForSquare((byte) 59);
+                        white_king=white_king>>>2;
+                    }
+                }
+
+            }
+        }
+        else{
+            if(!move.castling_flag) {
+                makePseudolegalMoveBlack(move);
+            }
+
+            white_turn=true;
+
+            //update en_passant if move was a pawn double push move
+            if(move.double_push_flag)
+                en_passant_target_square= (byte) (move.target_square-8);
+            else{
+                en_passant_target_square=-1;
+
+                //if the piece moved was the king update castling rights to false
+                if(move.piece_moved==6){
+                    black_castling_KS_right=false;
+                    black_castling_QS_right=false;
+                }
+
+                //if the piece moves was a rook update castling rights to false
+                if (move.piece_moved==4){
+                    if(move.source_square==7)
+                        black_castling_KS_right=false;
+                    else
+                        if(move.source_square==0)
+                            black_castling_QS_right=false;
+                }
+
+                //if the opponet's rook was captured update castling rights to false
+                if(move.piece_captured==4) {
+                    if (move.target_square == 63)
+                        white_castling_KS_right = false;
+                    else if (move.target_square == 56)
+                        white_castling_QS_right = false;
+                }
+
+                //update pieces after castling
+                if(move.castling_flag){
+                    if(move.target_square==6){
+                        black_rooks=Utils.popBitFromBitboard(black_rooks, (byte) 7) | Utils.getBitboardForSquare((byte) 5);
+                        black_king=black_king<<2;
+                    }
+                    if(move.target_square==2){
+                        black_rooks=Utils.popBitFromBitboard(black_rooks, (byte) 0) | Utils.getBitboardForSquare((byte) 3);
+                        black_king=black_king>>>2;
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean isWhiteInCheckmate(List<Move> legal_moves){
+        if(legal_moves.size()==0 && isWhiteKingInCheck(getBlackAttacksAsBitboard()))
+            return true;
+        else
+            return false;
+    }
+
+    public boolean isBlackInCheckmate(List<Move> legal_moves){
+        if(legal_moves.size()==0 && isBlackKingInCheck(getWhiteAttacksAsBitboard()))
+            return true;
+        else
+            return false;
+    }
+
+    public boolean isStalemate(List<Move> legal_moves_white, List<Move> legal_moves_black){
+        if(legal_moves_white.size()==0 && !isWhiteKingInCheck(getBlackAttacksAsBitboard()))
+            return true;
+        if(legal_moves_black.size()==0 && !isBlackKingInCheck(getWhiteAttacksAsBitboard()))
+            return true;
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Board board = (Board) o;
+        return white_pawns == board.white_pawns && white_knights == board.white_knights && white_bishops == board.white_bishops && white_rooks == board.white_rooks && white_queens == board.white_queens && white_king == board.white_king && black_pawns == board.black_pawns && black_knights == board.black_knights && black_bishops == board.black_bishops && black_rooks == board.black_rooks && black_queens == board.black_queens && black_king == board.black_king && white_castling_KS_right == board.white_castling_KS_right && white_castling_QS_right == board.white_castling_QS_right && black_castling_KS_right == board.black_castling_KS_right && black_castling_QS_right == board.black_castling_QS_right && white_turn == board.white_turn && en_passant_target_square == board.en_passant_target_square;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(white_pawns, white_knights, white_bishops, white_rooks, white_queens, white_king, black_pawns, black_knights, black_bishops, black_rooks, black_queens, black_king, white_castling_KS_right, white_castling_QS_right, black_castling_KS_right, black_castling_QS_right, white_turn, en_passant_target_square);
+    }
 }

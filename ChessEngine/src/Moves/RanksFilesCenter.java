@@ -9,6 +9,12 @@ public class RanksFilesCenter {
     public static long RANK_8=255L;
     public static long RANK_1=-72057594037927936L;
     public static long RANK_5=4278190080L;
+    public static long Squares_CD_1=864691128455135232L;
+    public static long Squares_BCD_1=1008806316530991104L;
+    public static long Squares_FG_1=6917529027641081856L;
+    public static long Squares_CD_8=12L;
+    public static long Squares_BCD_8=14L;
+    public static long Squares_FG_8=96L;
 
 
     public static long Rank_Masks[] =/*from rank1 to rank8*/

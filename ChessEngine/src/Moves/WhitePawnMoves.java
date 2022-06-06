@@ -142,11 +142,12 @@ public class WhitePawnMoves {
         long white_pawns_capture_left= PCTWhitePawnsCaptureLeft(white_pawns);
 
         byte en_passant_target_square=board.getEn_passant_target_square();
-        if(Utils.checkIfSquareIsOne(white_pawns_capture_right, en_passant_target_square))
-            moves.add(new Move(en_passant_target_square,(byte)(en_passant_target_square+7), (byte)1, (byte)1, (byte)0, false, true, false, true, false));
-        if(Utils.checkIfSquareIsOne(white_pawns_capture_left, en_passant_target_square))
-            moves.add(new Move(en_passant_target_square,(byte)(en_passant_target_square+9), (byte)1, (byte)1, (byte)0, false, true, false, true, false));
-
+        if((Utils.getBitboardForSquare((byte) (en_passant_target_square+8)) & RANK_5)!=0) {
+            if (Utils.checkIfSquareIsOne(white_pawns_capture_right, en_passant_target_square))
+                moves.add(new Move(en_passant_target_square, (byte) (en_passant_target_square + 7), (byte) 1, (byte) 1, (byte) 0, false, true, false, true, false));
+            if (Utils.checkIfSquareIsOne(white_pawns_capture_left, en_passant_target_square))
+                moves.add(new Move(en_passant_target_square, (byte) (en_passant_target_square + 9), (byte) 1, (byte) 1, (byte) 0, false, true, false, true, false));
+        }
         return moves;
     }
 }
