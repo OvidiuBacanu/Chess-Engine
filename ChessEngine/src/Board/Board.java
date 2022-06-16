@@ -309,10 +309,10 @@ public class Board {
                     break;
             }
         }
-//        if (fen.charAt(++charIndex) != '-')
-//        {
-//            en_passant_target_square = FileMasks8[fen.charAt(charIndex++) - 'a'];
-//        }
+        if (fen.charAt(++charIndex) != '-')
+        {
+            en_passant_target_square = (byte) ((fen.charAt(charIndex)-'a')+(8-(fen.charAt(++charIndex)-'0'))*8);
+        }
     }
 
     public Board getCopyBoard(){
@@ -1253,9 +1253,13 @@ public class Board {
             return false;
     }
 
-    public boolean isStalemate(List<Move> legal_moves_white, List<Move> legal_moves_black){
+    public boolean isWhiteInStalemate(List<Move> legal_moves_white){
         if(legal_moves_white.size()==0 && !isWhiteKingInCheck(getBlackAttacksAsBitboard()))
             return true;
+        return false;
+    }
+
+    public boolean isBlackInStalemate(List<Move> legal_moves_black){
         if(legal_moves_black.size()==0 && !isBlackKingInCheck(getWhiteAttacksAsBitboard()))
             return true;
         return false;

@@ -2,7 +2,20 @@ package Utils;
 
 import Board.Board;
 
+import java.util.HashMap;
+
 public class Utils {
+    public static HashMap<Byte, String> map_files = new HashMap<>(){{
+        put((byte) 0, "a");
+        put((byte) 1, "b");
+        put((byte) 2, "c");
+        put((byte) 3, "d");
+        put((byte) 4, "e");
+        put((byte) 5, "f");
+        put((byte) 6, "g");
+        put((byte) 7, "h");
+    }};
+
     public static void printBitboard(long bitboard){
         for(int rank=0;rank<8;rank++){
             System.out.print((8-rank)+"   ");
@@ -131,6 +144,41 @@ public class Utils {
             }
             System.out.println();
         }
-        System.out.println("\n    A  B  C D  E  F G  H");
+        System.out.println("\n    A  B  C D  E  F G  H\n");
+
+        if(board.isWhite_turn())
+            System.out.println("    Turn: White");
+        else
+            System.out.println("    Turn: Black");
+
+        String castling_rights="";
+        if(board.isWhite_castling_KS_right())
+            castling_rights+='K';
+        else
+            castling_rights+='-';
+
+        if(board.isWhite_castling_QS_right())
+            castling_rights+='Q';
+        else
+            castling_rights+='-';
+
+        if(board.isBlack_castling_KS_right())
+            castling_rights+='k';
+        else
+            castling_rights+='-';
+
+        if(board.isBlack_castling_QS_right())
+            castling_rights+='q';
+        else
+            castling_rights+='-';
+
+        System.out.println("    Castling: "+castling_rights);
+
+        String en_passant="null";
+        if(board.getEn_passant_target_square()>0) {
+            byte file = (byte) (board.getEn_passant_target_square() % 8);
+            en_passant = map_files.get(file) + (8 - board.getEn_passant_target_square() / 8);
+        }
+        System.out.println("    En-passant: "+en_passant);
     }
 }

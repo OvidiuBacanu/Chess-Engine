@@ -16,8 +16,7 @@ public class PerftTest {
     public long nodes = 0;
     public Board board;
     public HashMap<Byte, String> map = new HashMap<>();
-    public long checks = 0;
-    public long castles = 0;
+
 
     public PerftTest(Board board) {
         this.board = board;

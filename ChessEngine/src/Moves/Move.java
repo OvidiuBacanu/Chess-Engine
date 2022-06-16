@@ -1,5 +1,9 @@
 package Moves;
 
+import java.util.Objects;
+
+import static Utils.Utils.map_files;
+
 public class Move {
     public byte target_square;
     public byte source_square;
@@ -28,6 +32,10 @@ public class Move {
         this.promotion_flag = promotion_flag;
     }
 
+    public Move() {
+
+    }
+
     @Override
     public String toString() {
         return "Move{" +
@@ -42,5 +50,35 @@ public class Move {
                 ", en_passant_flag=" + en_passant_flag +
                 ", promotion_flag=" + promotion_flag +
                 '}';
+    }
+
+    public String toUCI() {
+        String move="";
+
+        byte file = (byte) (source_square % 8);
+        String source_square_string = map_files.get(file) + (8 - source_square / 8);
+        move+=source_square_string;
+
+        file = (byte) (target_square % 8);
+        String target_square_string = map_files.get(file) + (8 - target_square / 8);
+        move+=target_square_string;
+
+        if(promotion_flag)
+            switch (promotion_piece){
+                case 2-> move+='n';
+                case 3-> move+='b';
+                case 4-> move+='r';
+                case 5-> move+='q';
+            }
+
+        return move;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Move move = (Move) o;
+        return target_square == move.target_square && source_square == move.source_square && piece_moved == move.piece_moved && piece_captured == move.piece_captured && promotion_piece == move.promotion_piece && castling_flag == move.castling_flag && capture_flag == move.capture_flag && double_push_flag == move.double_push_flag && en_passant_flag == move.en_passant_flag && promotion_flag == move.promotion_flag;
     }
 }
