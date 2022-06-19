@@ -10,32 +10,74 @@ import static Evaluation.EvaluationUtils.*;
 
 public class Evaluator {
     private Board board;
-    private Move best_move;
-    private int ply=0;
-    private int nodes=0;
-    private Move best_sofar;
+    private int ply;
+    private int nodes;
 
-    private final Move[] first_killer_moves=new Move[64];
-    private final Move[] second_killer_moves=new Move[64];
+    private Move[] first_killer_moves;
+    private Move[] second_killer_moves;
+    public int[] pv_length;
+    public Move[][] pv_table;
 
-    public Evaluator() {}
+    public boolean follow_pv=true;
+    public boolean score_pv=true;
+
+    public boolean stop_flag=false;
+    public long start_time=0;
+    public long milliseconds=0;
+
+    public static long current_hash_key;
+    public TranspositionTable transpositionTable=new TranspositionTable();
+
+    public long[] repetition_table=new long[1000];
+    public int repetition_index=0;
+
+    public Evaluator() {
+        EvaluationUtils.init_random_keys();
+        transpositionTable.init_transposition_table();
+    }
 
     public void setBoard(Board board) {
         this.board = board;
+        current_hash_key=this.board.getHash_key();
     }
 
-    public Move getBest_move() {
-        return best_move;
+    public void setNodes(int nodes) {
+        this.nodes = nodes;
+    }
+
+    public void setRepetition_index(int repetition_index) {
+        this.repetition_index = repetition_index;
     }
 
     public int getNodes() {
         return nodes;
     }
 
+    public void initialize(){
+        nodes=0;
+        ply=0;
+        stop_flag=false;
+        start_time=0;
+        milliseconds=0;
+        first_killer_moves=new Move[max_ply];
+        second_killer_moves=new Move[max_ply];
+        pv_length=new int[max_ply];
+        pv_table=new Move[max_ply][max_ply];
+        follow_pv=false;
+        score_pv=false;
+    }
+
     public int quiescence(int alpha, int beta){
+        if(nodes%2048==0)
+            if(start_time!=0)
+                if((System.currentTimeMillis() - start_time) >= milliseconds)
+                    stop_flag=true;
+
         nodes++;
 
         int evaluation=evaluate_position(board.isWhite_turn());
+        if(ply>max_ply-1)
+            return evaluation;
 
         // fail-hard beta cutoff
         if (evaluation >= beta)
@@ -78,25 +120,51 @@ public class Evaluator {
             ply--;
             board = copy_board.getCopyBoard();
 
-            //fail hard beta cutoff
-            if(score>=beta)
-                //node (move) fails high
-                return beta;
+            if(stop_flag)
+                return 0;
 
             if(score>alpha) {
                 //PV  node (move)
                 alpha = score;
+
+                //fail hard beta cutoff
+                if(score>=beta)
+                    //node (move) fails high
+                    return beta;
             }
         }
         return alpha;
     }
 
     public int negamax(int alpha, int beta, int depth){
+        if(nodes%2048==0)
+            if(start_time!=0)
+                if((System.currentTimeMillis() - start_time) >= milliseconds)
+                    stop_flag=true;
+
+        pv_length[ply]=ply;
+
+        if(ply!=0 && is_repetition())
+            return 0;
+
+        int hash_flag=TranspositionTable.hash_flag_alpha;
+        boolean is_pv_node=beta-alpha>1;
+
+        if(ply!=0) {
+            int score_tt = transpositionTable.read_transposition_table_entry(alpha, beta, depth, ply);
+            if (score_tt != TranspositionTable.no_hash_entry && !is_pv_node)
+                return score_tt;
+        }
+
         if (depth == 0) {
             return quiescence(alpha, beta);
         }
+
+        if(ply>max_ply-1)
+            return evaluate_position(board.isWhite_turn());
+
+
         nodes++;
-        int old_alpha=alpha;
         boolean king_in_check;
 
         List<Move> moves;
@@ -111,49 +179,88 @@ public class Evaluator {
         if(king_in_check)
             depth++;
 
+        if(follow_pv)
+            enable_pv_scoring(moves);
+
         //sort moves after score
         moves.sort((o1, o2) -> Integer.compare(score_move(o2), score_move(o1)));
         for (Move move : moves) {
             Board copy_board = board.getCopyBoard();
+
             ply++;
+            repetition_table[repetition_index]=current_hash_key;
+            repetition_index++;
 
             board.makeMove(move);
+            current_hash_key=board.getHash_key();
 
             int score=-negamax(-beta, -alpha, depth-1);
 
             ply--;
+            repetition_index--;
             board = copy_board.getCopyBoard();
+            current_hash_key=board.getHash_key();
 
-
-            //fail hard beta cutoff
-            if(score>=beta) {
-                // store killer moves
-                second_killer_moves[ply] = first_killer_moves[ply];
-                first_killer_moves[ply] = move;
-
-                //node (move) fails high
-                return beta;
-            }
+            if(stop_flag)
+                return 0;
 
             if(score>alpha) {
+                hash_flag= TranspositionTable.hash_flag_exact;
+
                 //PV  node (move)
                 alpha = score;
-                if(ply==0)
-                    best_sofar=move;
+                //write PV move
+                pv_table[ply][ply]=move;
+
+                //copy move from deeper ply
+                if (pv_length[ply + 1] - (ply + 1) >= 0)
+                    System.arraycopy(pv_table[ply + 1], ply + 1, pv_table[ply], ply + 1, pv_length[ply + 1] - (ply + 1));
+                pv_length[ply]=pv_length[ply+1];
+
+                //fail hard beta cutoff
+                if(score>=beta) {
+                    transpositionTable.write_transposition_table_entry(beta,depth,TranspositionTable.hash_flag_beta,ply);
+
+                    // store killer moves
+                    if(!move.capture_flag) {
+                        second_killer_moves[ply] = first_killer_moves[ply];
+                        first_killer_moves[ply] = move;
+                    }
+                    //node (move) fails high
+                    return beta;
+                }
             }
         }
         if(moves.size()==0){
             if(king_in_check)
-                return min_int+ply;
+                return -mate_value+ply;
             else
                 return 0;
         }
 
-        if(old_alpha!=alpha)
-            best_move=best_sofar;
+        transpositionTable.write_transposition_table_entry(alpha,depth,hash_flag,ply);
 
         //node (move) fails low
         return alpha;
+    }
+
+    private void enable_pv_scoring(List<Move> moves) {
+        follow_pv=false;
+        for(Move move:moves){
+            if(pv_table[0][ply]!=null)
+                if(pv_table[0][ply].equals(move)){
+                    score_pv=true;
+                    follow_pv=true;
+            }
+        }
+    }
+
+    public boolean is_repetition(){
+        for(int i=0;i<repetition_index;i++){
+            if(repetition_table[i]==current_hash_key)
+                return true;
+        }
+        return false;
     }
 
     public int evaluate_position(boolean is_white_turn){
@@ -266,6 +373,14 @@ public class Evaluator {
     }
 
     public int score_move(Move move){
+        if(score_pv){
+            if(pv_table[0][ply]!=null)
+                if(pv_table[0][ply].equals(move)){
+                    score_pv=false;
+                    return 20000;
+                }
+        }
+
         //capture move
         if(move.capture_flag){
             return mvv_lva[move.piece_moved][move.piece_captured]+10000;
@@ -283,5 +398,10 @@ public class Evaluator {
                     return 8000;
         }
         return 0;
+    }
+
+    public void add_position_to_repetition_table(long hash_key) {
+        repetition_table[repetition_index]=hash_key;
+        repetition_index++;
     }
 }

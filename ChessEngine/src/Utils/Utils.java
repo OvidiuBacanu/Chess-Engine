@@ -180,5 +180,6 @@ public class Utils {
             en_passant = map_files.get(file) + (8 - board.getEn_passant_target_square() / 8);
         }
         System.out.println("    En-passant: "+en_passant);
+        System.out.println("    Hash key: "+board.getHash_key());
     }
 }

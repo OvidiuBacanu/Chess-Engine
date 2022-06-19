@@ -1,5 +1,7 @@
 import Board.Board;
+import Evaluation.EvaluationUtils;
 import Evaluation.Evaluator;
+import Evaluation.TranspositionTable;
 import Moves.*;
 import Perft.PerftTest;
 import UCI.UCI;
@@ -18,6 +20,7 @@ import static Moves.QueenMoves.PCTQueenMoves;
 import static Moves.RanksFilesCenter.RANK_8;
 import static Moves.RanksFilesCenter.Squares_CD_8;
 import static Moves.RookMoves.PCTRookMoves;
+import java.util.Random;
 
 public class Main {
     public static void main(String[] args) throws CloneNotSupportedException {
@@ -41,18 +44,18 @@ public class Main {
 
         boolean debug=false;
         if(debug){
-            Board board=new Board("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
+            Board board = new Board();
             Evaluator evaluator=new Evaluator();
             evaluator.setBoard(board);
 
-            evaluator.negamax(min_int,max_int,5);
-            System.out.println(evaluator.getBest_move().toUCI());
-            System.out.println(evaluator.getNodes());
+
 
         }
         else{
             UCI uci=new UCI();
             uci.uci_loop();
+
+            //info score cp 35 depth 7 nodes 804738 pv e2e4 b8c6 g1f3 g8f6 e4e5 f6d5 b1c3
         }
     }
 

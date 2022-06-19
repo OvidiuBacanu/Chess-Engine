@@ -1,6 +1,7 @@
 package Evaluation;
 
 import java.util.HashMap;
+import java.util.Random;
 
 /*
             0=none
@@ -23,6 +24,8 @@ public class EvaluationUtils {
 
     public static int max_int=500000;
     public static int min_int=-500000;
+    public static int mate_value=490000;
+    public static int mate_score=480000;
 
     public static int[] pawn_square_table =new int[]{
             0,  0,  0,  0,  0,  0,  0,  0,
@@ -111,4 +114,38 @@ public class EvaluationUtils {
             {0, 101, 201, 301, 401, 501},
             {0, 100, 200, 300, 400, 500}
     };
+
+    public static int max_ply=64;
+
+    public static Random random=new Random(1854366879885646465L);
+
+    //keys for zobrist hashing
+    //random piece keys [piece][square]
+    public static long[][] white_pieces_keys=new long[7][64];
+    public static long[][] black_pieces_keys=new long[7][64];
+    public static long[] enpassant_keys=new long[64];
+    public static long[] castling_keys=new long[4];
+    public static long side_key;
+
+    public static void init_random_keys(){
+        //pieces
+        for (int piece=1;piece<7;piece++){
+            for(int square=0;square<64;square++){
+               white_pieces_keys[piece][square]=random.nextLong();
+               black_pieces_keys[piece][square]=random.nextLong();
+            }
+        }
+
+        //en-passant
+        for(int square=0;square<64;square++){
+            enpassant_keys[square]= random.nextLong();
+        }
+
+        //side
+        side_key=random.nextLong();
+
+        //castling rights
+        for(int i=0;i<4;i++)
+            castling_keys[i]=random.nextLong();
+    }
 }
