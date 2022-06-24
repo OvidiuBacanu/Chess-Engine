@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static Evaluation.EvaluationUtils.*;
+import static Moves.KingMoves.PCTKingMoves;
 
 public class Evaluator {
     private Board board;
@@ -67,6 +68,7 @@ public class Evaluator {
         score_pv=false;
     }
 
+    //SEARCH
     public int quiescence(int alpha, int beta){
         if(nodes%2048==0)
             if(start_time!=0)
@@ -255,18 +257,15 @@ public class Evaluator {
         }
     }
 
-    public boolean is_repetition(){
-        for(int i=0;i<repetition_index;i++){
-            if(repetition_table[i]==current_hash_key)
-                return true;
-        }
-        return false;
-    }
-
+    //STATIC EVALUATION
     public int evaluate_position(boolean is_white_turn){
         int score=0;
         score+=evaluate_material();
         score+=evaluate_piece_on_square();
+        score+=evaluate_pawns_structure();
+        score+=evaluate_open_semi_open_files();
+        score+=evaluate_mobility();
+        score+=evaluate_king_safety();
         if(is_white_turn)
             return score;
         else
@@ -372,6 +371,233 @@ public class Evaluator {
         return score;
     }
 
+    public int evaluate_pawns_structure(){
+        int score=0;
+        long white_pawns=board.getWhite_pawns();
+        long black_pawns= board.getBlack_pawns();
+
+        for(int file_index=0;file_index<8;file_index++){
+            long file=File_Masks_EV[file_index];
+            long white_pawns_on_file=white_pawns&file;
+            long black_pawns_on_file=black_pawns&file;
+
+            //check if there are any pawns on current file
+            if(white_pawns_on_file!=0) {
+                byte source_square = (byte) Long.numberOfTrailingZeros(white_pawns_on_file);
+                white_pawns_on_file = Utils.popBitFromBitboard(white_pawns_on_file, source_square);
+
+                //if it enters this while loop, there are double_pawns
+                while (white_pawns_on_file != 0) {
+                    source_square = (byte) Long.numberOfTrailingZeros(white_pawns_on_file);
+                    white_pawns_on_file = Utils.popBitFromBitboard(white_pawns_on_file, source_square);
+                    score+=double_pawn_penalty;
+                }
+
+                //check if the pawns on the current file are isolated
+                white_pawns_on_file=white_pawns&file;
+                while (white_pawns_on_file != 0) {
+                    source_square = (byte) Long.numberOfTrailingZeros(white_pawns_on_file);
+                    white_pawns_on_file = Utils.popBitFromBitboard(white_pawns_on_file, source_square);
+
+                    if (file_index == 0) {
+                        if ((white_pawns & File_Masks_EV[file_index + 1]) == 0)
+                            score += isolated_pawn_penalty;
+                    } else if (file_index == 7) {
+                        if ((white_pawns & File_Masks_EV[file_index - 1]) == 0)
+                            score += isolated_pawn_penalty;
+                    } else {
+                        if ((white_pawns & File_Masks_EV[file_index + 1]) == 0 && (white_pawns & File_Masks_EV[file_index - 1]) == 0)
+                            score += isolated_pawn_penalty;
+                    }
+                }
+
+                //check for passed pawns on the current file
+                white_pawns_on_file=white_pawns&file;
+                while (white_pawns_on_file != 0) {
+                    source_square = (byte) Long.numberOfTrailingZeros(white_pawns_on_file);
+
+                    if (file_index == 0) {
+                        if ((black_pawns & File_Masks_EV[file_index + 1]) == 0 && (black_pawns & File_Masks_EV[file_index]) == 0)
+                            score += get_passed_pawn_bonus_for_rank(white_pawns_on_file,true);
+                    } else if (file_index == 7) {
+                        if ((black_pawns & File_Masks_EV[file_index - 1]) == 0 && (black_pawns & File_Masks_EV[file_index]) == 0)
+                            score += get_passed_pawn_bonus_for_rank(white_pawns_on_file,true);
+                    } else {
+                        if ((black_pawns & File_Masks_EV[file_index + 1]) == 0 && (black_pawns & File_Masks_EV[file_index - 1]) == 0 && (black_pawns & File_Masks_EV[file_index]) == 0)
+                            score += get_passed_pawn_bonus_for_rank(white_pawns_on_file,true);
+                    }
+                    white_pawns_on_file = Utils.popBitFromBitboard(white_pawns_on_file, source_square);
+                }
+            }
+
+            //check if there are any pawns on current file
+            if(black_pawns_on_file!=0) {
+                byte source_square = (byte) Long.numberOfTrailingZeros(black_pawns_on_file);
+                black_pawns_on_file = Utils.popBitFromBitboard(black_pawns_on_file, source_square);
+
+                //if it enters this while loop, there are double_pawns
+                while (black_pawns_on_file != 0) {
+                    source_square = (byte) Long.numberOfTrailingZeros(black_pawns_on_file);
+                    black_pawns_on_file = Utils.popBitFromBitboard(black_pawns_on_file, source_square);
+                    score-=double_pawn_penalty;
+                }
+
+                //check if the pawns on the current file are isolated
+                black_pawns_on_file=black_pawns&file;
+                while (black_pawns_on_file != 0) {
+                    source_square = (byte) Long.numberOfTrailingZeros(black_pawns_on_file);
+                    black_pawns_on_file = Utils.popBitFromBitboard(black_pawns_on_file, source_square);
+                    if (file_index == 0) {
+                        if ((black_pawns & File_Masks_EV[file_index + 1]) == 0)
+                            score -= isolated_pawn_penalty;
+                    } else if (file_index == 7) {
+                        if ((black_pawns & File_Masks_EV[file_index - 1]) == 0)
+                            score -= isolated_pawn_penalty;
+                    } else {
+                        if ((black_pawns & File_Masks_EV[file_index + 1]) == 0 && (black_pawns & File_Masks_EV[file_index - 1]) == 0)
+                            score -= isolated_pawn_penalty;
+                    }
+                }
+
+                //check for passed pawns on the current file
+                black_pawns_on_file=black_pawns&file;
+                while (black_pawns_on_file != 0) {
+                    source_square = (byte) Long.numberOfTrailingZeros(black_pawns_on_file);
+
+                    if (file_index == 0) {
+                        if ((white_pawns & File_Masks_EV[file_index + 1]) == 0 && (white_pawns & File_Masks_EV[file_index]) == 0)
+                            score -= get_passed_pawn_bonus_for_rank(black_pawns_on_file, false);
+                    } else if (file_index == 7) {
+                        if ((white_pawns & File_Masks_EV[file_index - 1]) == 0 && (white_pawns & File_Masks_EV[file_index]) == 0)
+                            score -= get_passed_pawn_bonus_for_rank(black_pawns_on_file, false);
+                    } else {
+                        if ((white_pawns & File_Masks_EV[file_index + 1]) == 0 && (white_pawns & File_Masks_EV[file_index - 1]) == 0 && (white_pawns & File_Masks_EV[file_index]) == 0)
+                            score -= get_passed_pawn_bonus_for_rank(black_pawns_on_file, false);
+                    }
+                    black_pawns_on_file = Utils.popBitFromBitboard(black_pawns_on_file, source_square);
+                }
+            }
+        }
+        return score;
+    }
+
+    public int get_passed_pawn_bonus_for_rank(long pawns, boolean for_white){
+        int score=0;
+        for(int rank_index=0;rank_index<8;rank_index++)
+            if((pawns&Rank_Masks_EV[rank_index])!=0) {
+                if (for_white)
+                    score += passed_pawn_bonus[7-rank_index];
+                else
+                    score += passed_pawn_bonus[rank_index];
+            }
+        return score;
+    }
+
+    public int evaluate_open_semi_open_files(){
+        int score=0;
+        long white_rooks=board.getWhite_rooks();
+        long black_rooks=board.getBlack_rooks();
+
+        long white_pawns=board.getWhite_pawns();
+        long black_pawns=board.getBlack_pawns();
+
+        long white_king=board.getWhite_king();
+        long black_king=board.getBlack_king();
+
+        for(int file_index=0;file_index<8;file_index++){
+            long file=File_Masks_EV[file_index];
+
+            //check if rooks are on current file
+            if((white_rooks&file)!=0){
+                long white_rooks_on_file=white_rooks&file;
+                while (white_rooks_on_file!=0){
+                    byte square= (byte) Long.numberOfTrailingZeros(white_rooks_on_file);
+                    white_rooks_on_file= Utils.popBitFromBitboard(white_rooks_on_file, square);
+                    //check for own pawns
+                    if((white_pawns&file)==0){
+                        //open file
+                        if((black_pawns&file)==0)
+                            score+=open_file_score;
+                        //semi-open file
+                        else
+                            score+=semi_open_file_score;
+                    }
+                }
+            }
+
+            if((white_king&file)!=0){
+                //check for own pawns
+                if((white_pawns&file)==0){
+                    //open file
+                    if((black_pawns&file)==0)
+                        score-=open_file_score;
+                    //semi-open file
+                    else
+                        score-=semi_open_file_score;
+                }
+            }
+
+            //check if rooks are on current file
+            if((black_rooks&file)!=0){
+                long black_rooks_on_file=black_rooks&file;
+                while (black_rooks_on_file!=0){
+                    byte square= (byte) Long.numberOfTrailingZeros(black_rooks_on_file);
+                    black_rooks_on_file= Utils.popBitFromBitboard(black_rooks_on_file, square);
+                    //check for own pawns
+                    if((black_pawns&file)==0){
+                        //open file
+                        if((white_pawns&file)==0)
+                            score-=open_file_score;
+                        //semi-open file
+                        else
+                            score-=semi_open_file_score;
+                    }
+                }
+            }
+
+            if((black_king&file)!=0){
+                //check for own pawns
+                if((black_pawns&file)==0) {
+                    //open file
+                    if ((white_pawns & file) == 0)
+                        score += open_file_score;
+                    //semi-open file
+                    else
+                        score += semi_open_file_score;
+                }
+            }
+        }
+        return score;
+    }
+
+    public int evaluate_mobility(){
+        int score=0;
+        score+=board.generatePseudolegalMovesForWhite().size();
+        score-=board.generatePseudolegalMovesForBlack().size();
+        return score;
+    }
+
+    public int evaluate_king_safety(){
+        int score=0;
+        long white_king_attacks=PCTKingMoves((byte) Long.numberOfTrailingZeros(board.getWhite_king()));
+        long black_king_attacks=PCTKingMoves((byte) Long.numberOfTrailingZeros(board.getBlack_king()));
+
+        long white_pieces=board.getWhitePiecesAsBitboard();
+        long black_pieces=board.getBlackPiecesAsBitboard();
+
+        long white_pieces_attacks=board.getWhiteAttacksAsBitboard();
+        long black_pieces_attacks=board.getBlackAttacksAsBitboard();
+
+        score+=Utils.countBits(white_king_attacks&white_pieces)*king_shield;
+        score-=Utils.countBits(black_king_attacks&black_pieces)*king_shield;
+
+        score-=Utils.countBits(white_king_attacks&black_pieces_attacks)*king_attacked;
+        score+=Utils.countBits(black_king_attacks&white_pieces_attacks)*king_attacked;
+        return score;
+    }
+
+
+    //SCORE MOVE
     public int score_move(Move move){
         if(score_pv){
             if(pv_table[0][ply]!=null)
@@ -398,6 +624,15 @@ public class Evaluator {
                     return 8000;
         }
         return 0;
+    }
+
+    //REPETITION
+    public boolean is_repetition(){
+        for(int i=0;i<repetition_index;i++){
+            if(repetition_table[i]==current_hash_key)
+                return true;
+        }
+        return false;
     }
 
     public void add_position_to_repetition_table(long hash_key) {

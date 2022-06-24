@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static Moves.RanksFilesCenter.*;
-import static Moves.RanksFilesCenter.RANK_8;
 
 public class BlackPawnMoves {
     //PCT = Pre Calculated Tables
@@ -92,9 +91,9 @@ public class BlackPawnMoves {
 
     public static List<Move> generatePseudolegalMovesCaptureBP(Board board, boolean right){
         List<Move> moves=new ArrayList<>();
-        long black_pawns_capture=0L;
+        long black_pawns_capture;
         long black_pawns=board.getBlack_pawns();
-        int minus_square=0;
+        int minus_square;
 
         if(right){
             black_pawns_capture= PCTBlackPawnsCaptureRight(black_pawns);

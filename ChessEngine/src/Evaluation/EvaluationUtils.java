@@ -115,6 +115,29 @@ public class EvaluationUtils {
             {0, 100, 200, 300, 400, 500}
     };
 
+    public static long[] File_Masks_EV =/*from fileA to FileH*/
+            {
+                    0x101010101010101L, 0x202020202020202L, 0x404040404040404L, 0x808080808080808L,
+                    0x1010101010101010L, 0x2020202020202020L, 0x4040404040404040L, 0x8080808080808080L
+            };
+    public static long[] Rank_Masks_EV =/*from rank1 to rank8*/
+            {
+                    0xFFL, 0xFF00L, 0xFF0000L, 0xFF000000L, 0xFF00000000L, 0xFF0000000000L, 0xFF000000000000L, 0xFF00000000000000L
+            };
+
+    //pawns
+    public static int double_pawn_penalty = -10;
+    public static int isolated_pawn_penalty = -10;
+    public static int[] passed_pawn_bonus = new int[]{0, 10, 30, 50, 75, 100, 150, 200};
+
+    //semi-open and open files score
+    public static int semi_open_file_score=10;
+    public static int open_file_score=25;
+
+    //king safety
+    public static int king_shield=5;
+    public static int king_attacked=3;
+
     public static int max_ply=64;
 
     public static Random random=new Random(1854366879885646465L);

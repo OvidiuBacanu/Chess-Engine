@@ -52,10 +52,6 @@ public class Board {
         return hash_key;
     }
 
-    public void setHash_key(long hash_key) {
-        this.hash_key = hash_key;
-    }
-
     //initial position constructor
     public Board(){
 
@@ -254,76 +250,48 @@ public class Board {
         int boardIndex = 0;
         while (fen.charAt(charIndex) != ' ')
         {
-            switch (fen.charAt(charIndex++))
-            {
-                case 'P': white_pawns |= (1L << boardIndex++);
-                    break;
-                case 'p': black_pawns |= (1L << boardIndex++);
-                    break;
-                case 'N': white_knights |= (1L << boardIndex++);
-                    break;
-                case 'n': black_knights |= (1L << boardIndex++);
-                    break;
-                case 'B': white_bishops |= (1L << boardIndex++);
-                    break;
-                case 'b': black_bishops |= (1L << boardIndex++);
-                    break;
-                case 'R': white_rooks |= (1L << boardIndex++);
-                    break;
-                case 'r': black_rooks |= (1L << boardIndex++);
-                    break;
-                case 'Q': white_queens |= (1L << boardIndex++);
-                    break;
-                case 'q': black_queens |= (1L << boardIndex++);
-                    break;
-                case 'K': white_king |= (1L << boardIndex++);
-                    break;
-                case 'k': black_king |= (1L << boardIndex++);
-                    break;
+            switch (fen.charAt(charIndex++)) {
+                case 'P' -> white_pawns |= (1L << boardIndex++);
+                case 'p' -> black_pawns |= (1L << boardIndex++);
+                case 'N' -> white_knights |= (1L << boardIndex++);
+                case 'n' -> black_knights |= (1L << boardIndex++);
+                case 'B' -> white_bishops |= (1L << boardIndex++);
+                case 'b' -> black_bishops |= (1L << boardIndex++);
+                case 'R' -> white_rooks |= (1L << boardIndex++);
+                case 'r' -> black_rooks |= (1L << boardIndex++);
+                case 'Q' -> white_queens |= (1L << boardIndex++);
+                case 'q' -> black_queens |= (1L << boardIndex++);
+                case 'K' -> white_king |= (1L << boardIndex++);
+                case 'k' -> black_king |= (1L << boardIndex++);
+
 //                case '/':
 //                    break;
-                case '1': boardIndex++;
-                    break;
-                case '2': boardIndex += 2;
-                    break;
-                case '3': boardIndex += 3;
-                    break;
-                case '4': boardIndex += 4;
-                    break;
-                case '5': boardIndex += 5;
-                    break;
-                case '6': boardIndex += 6;
-                    break;
-                case '7': boardIndex += 7;
-                    break;
-                case '8': boardIndex += 8;
-                    break;
-                default:
-                    break;
+                case '1' -> boardIndex++;
+                case '2' -> boardIndex += 2;
+                case '3' -> boardIndex += 3;
+                case '4' -> boardIndex += 4;
+                case '5' -> boardIndex += 5;
+                case '6' -> boardIndex += 6;
+                case '7' -> boardIndex += 7;
+                case '8' -> boardIndex += 8;
+                default -> {
+                }
             }
         }
         white_turn = (fen.charAt(++charIndex) == 'w');
         charIndex += 2;
         while (fen.charAt(charIndex) != ' ')
         {
-            switch (fen.charAt(charIndex++))
-            {
-                case '-':
-                    break;
-                case 'K': white_castling_KS_right = true;
-                    break;
-                case 'Q': white_castling_QS_right = true;
-                    break;
-                case 'k': black_castling_KS_right = true;
-                    break;
-                case 'q': black_castling_QS_right = true;
-                    break;
-                default:
-                    break;
+            switch (fen.charAt(charIndex++)) {
+                case 'K' -> white_castling_KS_right = true;
+                case 'Q' -> white_castling_QS_right = true;
+                case 'k' -> black_castling_KS_right = true;
+                case 'q' -> black_castling_QS_right = true;
+                default -> {
+                }
             }
         }
-        if (fen.charAt(++charIndex) != '-')
-        {
+        if (fen.charAt(++charIndex) != '-') {
             en_passant_target_square = (byte) ((fen.charAt(charIndex)-'a')+(8-(fen.charAt(++charIndex)-'0'))*8);
         }
         else{
@@ -403,9 +371,7 @@ public class Board {
         return white_pawns;
     }
 
-    public void setWhite_pawns(long white_pawns) {
-        this.white_pawns = white_pawns;
-    }
+    public void setWhite_pawns(long white_pawns) {this.white_pawns = white_pawns;}
 
     public long getWhite_knights() {
         return white_knights;
@@ -552,21 +518,11 @@ public class Board {
             enemy_pieces = getBlackPiecesPossibleCaptures();
             List<Move> moves=new ArrayList<>();
             switch (piece_type) {
-                case 2 -> {
-                    my_piece_to_move = white_knights;
-                }
-                case 3 -> {
-                    my_piece_to_move = white_bishops;
-                }
-                case 4 -> {
-                    my_piece_to_move = white_rooks;
-                }
-                case 5 -> {
-                    my_piece_to_move = white_queens;
-                }
-                case 6 -> {
-                    my_piece_to_move = white_king;
-                }
+                case 2 -> my_piece_to_move = white_knights;
+                case 3 -> my_piece_to_move = white_bishops;
+                case 4 -> my_piece_to_move = white_rooks;
+                case 5 -> my_piece_to_move = white_queens;
+                case 6 -> my_piece_to_move = white_king;
             }
             while (my_piece_to_move!=0){
                 byte source_square= (byte) Long.numberOfTrailingZeros(my_piece_to_move);
@@ -574,21 +530,11 @@ public class Board {
 
                 long possible_moves=0;
                 switch (piece_type) {
-                    case 2 -> {
-                        possible_moves = PCTKnightMoves(source_square) & ~my_pieces;
-                    }
-                    case 3 -> {
-                        possible_moves = PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 4 -> {
-                        possible_moves = PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 5 -> {
-                        possible_moves = PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 6 -> {
-                        possible_moves = PCTKingMoves(source_square) & ~my_pieces;
-                    }
+                    case 2 -> possible_moves = PCTKnightMoves(source_square) & ~my_pieces;
+                    case 3 -> possible_moves = PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 4 -> possible_moves = PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 5 -> possible_moves = PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 6 -> possible_moves = PCTKingMoves(source_square) & ~my_pieces;
                 }
 
                 while (possible_moves!=0){
@@ -616,21 +562,11 @@ public class Board {
             enemy_pieces = getWhitePiecesPossibleCaptures();
             List<Move> moves=new ArrayList<>();
             switch (piece_type) {
-                case 2 -> {
-                    my_piece_to_move = black_knights;
-                }
-                case 3 -> {
-                    my_piece_to_move = black_bishops;
-                }
-                case 4 -> {
-                    my_piece_to_move = black_rooks;
-                }
-                case 5 -> {
-                    my_piece_to_move = black_queens;
-                }
-                case 6 -> {
-                    my_piece_to_move = black_king;
-                }
+                case 2 -> my_piece_to_move = black_knights;
+                case 3 -> my_piece_to_move = black_bishops;
+                case 4 -> my_piece_to_move = black_rooks;
+                case 5 -> my_piece_to_move = black_queens;
+                case 6 -> my_piece_to_move = black_king;
             }
             while (my_piece_to_move!=0){
                 byte source_square= (byte) Long.numberOfTrailingZeros(my_piece_to_move);
@@ -638,21 +574,11 @@ public class Board {
 
                 long possible_moves=0;
                 switch (piece_type) {
-                    case 2 -> {
-                        possible_moves = PCTKnightMoves(source_square) & ~my_pieces;
-                    }
-                    case 3 -> {
-                        possible_moves = PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 4 -> {
-                        possible_moves = PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 5 -> {
-                        possible_moves = PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 6 -> {
-                        possible_moves = PCTKingMoves(source_square) & ~my_pieces;
-                    }
+                    case 2 -> possible_moves = PCTKnightMoves(source_square) & ~my_pieces;
+                    case 3 -> possible_moves = PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 4 -> possible_moves = PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 5 -> possible_moves = PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 6 -> possible_moves = PCTKingMoves(source_square) & ~my_pieces;
                 }
 
                 while (possible_moves!=0){
@@ -748,42 +674,22 @@ public class Board {
         long my_piece_to_move=0;
         for(byte piece=2;piece<7;piece++){
             switch (piece) {
-                case 2 -> {
-                    my_piece_to_move = black_knights;
-                }
-                case 3 -> {
-                    my_piece_to_move = black_bishops;
-                }
-                case 4 -> {
-                    my_piece_to_move = black_rooks;
-                }
-                case 5 -> {
-                    my_piece_to_move = black_queens;
-                }
-                case 6 -> {
-                    my_piece_to_move = black_king;
-                }
+                case 2 -> my_piece_to_move = black_knights;
+                case 3 -> my_piece_to_move = black_bishops;
+                case 4 -> my_piece_to_move = black_rooks;
+                case 5 -> my_piece_to_move = black_queens;
+                case 6 -> my_piece_to_move = black_king;
             }
             while (my_piece_to_move!=0) {
                 byte source_square = (byte) Long.numberOfTrailingZeros(my_piece_to_move);
                 my_piece_to_move = Utils.popBitFromBitboard(my_piece_to_move, source_square);
 
                 switch (piece) {
-                    case 2 -> {
-                        black_attacks|= PCTKnightMoves(source_square) & ~my_pieces;
-                    }
-                    case 3 -> {
-                        black_attacks|= PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 4 -> {
-                        black_attacks|= PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 5 -> {
-                        black_attacks|= PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 6 -> {
-                        black_attacks|= PCTKingMoves(source_square) & ~my_pieces;
-                    }
+                    case 2 -> black_attacks|= PCTKnightMoves(source_square) & ~my_pieces;
+                    case 3 -> black_attacks|= PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 4 -> black_attacks|= PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 5 -> black_attacks|= PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 6 -> black_attacks|= PCTKingMoves(source_square) & ~my_pieces;
                 }
             }
 
@@ -797,42 +703,22 @@ public class Board {
         long my_piece_to_move=0;
         for(byte piece=2;piece<7;piece++){
             switch (piece) {
-                case 2 -> {
-                    my_piece_to_move = white_knights;
-                }
-                case 3 -> {
-                    my_piece_to_move = white_bishops;
-                }
-                case 4 -> {
-                    my_piece_to_move = white_rooks;
-                }
-                case 5 -> {
-                    my_piece_to_move = white_queens;
-                }
-                case 6 -> {
-                    my_piece_to_move = white_king;
-                }
+                case 2 -> my_piece_to_move = white_knights;
+                case 3 -> my_piece_to_move = white_bishops;
+                case 4 -> my_piece_to_move = white_rooks;
+                case 5 -> my_piece_to_move = white_queens;
+                case 6 -> my_piece_to_move = white_king;
             }
             while (my_piece_to_move!=0) {
                 byte source_square = (byte) Long.numberOfTrailingZeros(my_piece_to_move);
                 my_piece_to_move = Utils.popBitFromBitboard(my_piece_to_move, source_square);
 
                 switch (piece) {
-                    case 2 -> {
-                        white_attacks|= PCTKnightMoves(source_square) & ~my_pieces;
-                    }
-                    case 3 -> {
-                        white_attacks|= PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 4 -> {
-                        white_attacks|= PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 5 -> {
-                        white_attacks|= PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
-                    }
-                    case 6 -> {
-                        white_attacks|= PCTKingMoves(source_square) & ~my_pieces;
-                    }
+                    case 2 -> white_attacks|= PCTKnightMoves(source_square) & ~my_pieces;
+                    case 3 -> white_attacks|= PCTBishopMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 4 -> white_attacks|= PCTRookMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 5 -> white_attacks|= PCTQueenMoves(source_square, getOccupiedSquares()) & ~my_pieces;
+                    case 6 -> white_attacks|= PCTKingMoves(source_square) & ~my_pieces;
                 }
             }
 
@@ -903,38 +789,20 @@ public class Board {
                 if(move.promotion_flag){
                     white_pawns=Utils.popBitFromBitboard(white_pawns,move.source_square);
                     switch (move.promotion_piece){
-                        case 2 -> {
-                            white_knights|= Utils.getBitboardForSquare(move.target_square);
-                        }
-                        case 3 -> {
-                            white_bishops|= Utils.getBitboardForSquare(move.target_square);
-                        }
-                        case 4 -> {
-                            white_rooks|= Utils.getBitboardForSquare(move.target_square);
-                        }
-                        case 5 -> {
-                            white_queens|= Utils.getBitboardForSquare(move.target_square);
-                        }
+                        case 2 -> white_knights|= Utils.getBitboardForSquare(move.target_square);
+                        case 3 -> white_bishops|= Utils.getBitboardForSquare(move.target_square);
+                        case 4 -> white_rooks|= Utils.getBitboardForSquare(move.target_square);
+                        case 5 -> white_queens|= Utils.getBitboardForSquare(move.target_square);
                     }
                 }
                 else
                     white_pawns=Utils.popBitFromBitboard(white_pawns,move.source_square) | Utils.getBitboardForSquare(move.target_square);
             }
-            case 2 -> {
-                white_knights=Utils.popBitFromBitboard(white_knights,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 3 -> {
-                white_bishops=Utils.popBitFromBitboard(white_bishops,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 4 -> {
-                white_rooks=Utils.popBitFromBitboard(white_rooks,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 5 -> {
-                white_queens=Utils.popBitFromBitboard(white_queens,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 6 -> {
-                white_king=Utils.popBitFromBitboard(white_king,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
+            case 2 -> white_knights=Utils.popBitFromBitboard(white_knights,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 3 -> white_bishops=Utils.popBitFromBitboard(white_bishops,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 4 -> white_rooks=Utils.popBitFromBitboard(white_rooks,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 5 -> white_queens=Utils.popBitFromBitboard(white_queens,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 6 -> white_king=Utils.popBitFromBitboard(white_king,move.source_square) | Utils.getBitboardForSquare(move.target_square);
         }
 
         if(move.capture_flag){
@@ -945,18 +813,10 @@ public class Board {
                     else
                         black_pawns = Utils.popBitFromBitboard(black_pawns, move.target_square);
                 }
-                case 2 -> {
-                    black_knights = Utils.popBitFromBitboard(black_knights, move.target_square);
-                }
-                case 3 -> {
-                    black_bishops = Utils.popBitFromBitboard(black_bishops, move.target_square);
-                }
-                case 4 -> {
-                    black_rooks = Utils.popBitFromBitboard(black_rooks, move.target_square);
-                }
-                case 5 -> {
-                    black_queens = Utils.popBitFromBitboard(black_queens, move.target_square);
-                }
+                case 2 -> black_knights = Utils.popBitFromBitboard(black_knights, move.target_square);
+                case 3 -> black_bishops = Utils.popBitFromBitboard(black_bishops, move.target_square);
+                case 4 -> black_rooks = Utils.popBitFromBitboard(black_rooks, move.target_square);
+                case 5 -> black_queens = Utils.popBitFromBitboard(black_queens, move.target_square);
             }
 
         }
@@ -969,38 +829,20 @@ public class Board {
                 if(move.promotion_flag){
                     white_pawns|=Utils.getBitboardForSquare(move.source_square);
                     switch (move.promotion_piece){
-                        case 2 -> {
-                            white_knights=Utils.popBitFromBitboard(white_knights,move.target_square);
-                        }
-                        case 3 -> {
-                            white_bishops=Utils.popBitFromBitboard(white_bishops,move.target_square);
-                        }
-                        case 4 -> {
-                            white_rooks=Utils.popBitFromBitboard(white_rooks,move.target_square);
-                        }
-                        case 5 -> {
-                            white_queens=Utils.popBitFromBitboard(white_queens,move.target_square);
-                        }
+                        case 2 -> white_knights=Utils.popBitFromBitboard(white_knights,move.target_square);
+                        case 3 -> white_bishops=Utils.popBitFromBitboard(white_bishops,move.target_square);
+                        case 4 -> white_rooks=Utils.popBitFromBitboard(white_rooks,move.target_square);
+                        case 5 -> white_queens=Utils.popBitFromBitboard(white_queens,move.target_square);
                     }
                 }
                 else
                     white_pawns=Utils.popBitFromBitboard(white_pawns,move.target_square) | Utils.getBitboardForSquare(move.source_square);
             }
-            case 2 -> {
-                white_knights=Utils.popBitFromBitboard(white_knights,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 3 -> {
-                white_bishops=Utils.popBitFromBitboard(white_bishops,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 4 -> {
-                white_rooks=Utils.popBitFromBitboard(white_rooks,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 5 -> {
-                white_queens=Utils.popBitFromBitboard(white_queens,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 6 -> {
-                white_king=Utils.popBitFromBitboard(white_king,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
+            case 2 -> white_knights=Utils.popBitFromBitboard(white_knights,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 3 -> white_bishops=Utils.popBitFromBitboard(white_bishops,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 4 -> white_rooks=Utils.popBitFromBitboard(white_rooks,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 5 -> white_queens=Utils.popBitFromBitboard(white_queens,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 6 -> white_king=Utils.popBitFromBitboard(white_king,move.target_square) | Utils.getBitboardForSquare(move.source_square);
         }
 
         if(move.capture_flag){
@@ -1011,18 +853,10 @@ public class Board {
                     else
                         black_pawns |= Utils.getBitboardForSquare(move.target_square);
                 }
-                case 2 -> {
-                    black_knights |= Utils.getBitboardForSquare(move.target_square);
-                }
-                case 3 -> {
-                    black_bishops |= Utils.getBitboardForSquare(move.target_square);
-                }
-                case 4 -> {
-                    black_rooks |= Utils.getBitboardForSquare(move.target_square);
-                }
-                case 5 -> {
-                    black_queens |= Utils.getBitboardForSquare(move.target_square);
-                }
+                case 2 -> black_knights |= Utils.getBitboardForSquare(move.target_square);
+                case 3 -> black_bishops |= Utils.getBitboardForSquare(move.target_square);
+                case 4 -> black_rooks |= Utils.getBitboardForSquare(move.target_square);
+                case 5 -> black_queens |= Utils.getBitboardForSquare(move.target_square);
             }
         }
     }
@@ -1033,38 +867,20 @@ public class Board {
                 if(move.promotion_flag){
                     black_pawns=Utils.popBitFromBitboard(black_pawns,move.source_square);
                     switch (move.promotion_piece){
-                        case 2 -> {
-                            black_knights|= Utils.getBitboardForSquare(move.target_square);
-                        }
-                        case 3 -> {
-                            black_bishops|= Utils.getBitboardForSquare(move.target_square);
-                        }
-                        case 4 -> {
-                            black_rooks|= Utils.getBitboardForSquare(move.target_square);
-                        }
-                        case 5 -> {
-                            black_queens|= Utils.getBitboardForSquare(move.target_square);
-                        }
+                        case 2 -> black_knights|= Utils.getBitboardForSquare(move.target_square);
+                        case 3 -> black_bishops|= Utils.getBitboardForSquare(move.target_square);
+                        case 4 -> black_rooks|= Utils.getBitboardForSquare(move.target_square);
+                        case 5 -> black_queens|= Utils.getBitboardForSquare(move.target_square);
                     }
                 }
                 else
                     black_pawns=Utils.popBitFromBitboard(black_pawns,move.source_square) | Utils.getBitboardForSquare(move.target_square);
             }
-            case 2 -> {
-                black_knights=Utils.popBitFromBitboard(black_knights,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 3 -> {
-                black_bishops=Utils.popBitFromBitboard(black_bishops,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 4 -> {
-                black_rooks=Utils.popBitFromBitboard(black_rooks,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 5 -> {
-                black_queens=Utils.popBitFromBitboard(black_queens,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
-            case 6 -> {
-                black_king=Utils.popBitFromBitboard(black_king,move.source_square) | Utils.getBitboardForSquare(move.target_square);
-            }
+            case 2 -> black_knights=Utils.popBitFromBitboard(black_knights,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 3 -> black_bishops=Utils.popBitFromBitboard(black_bishops,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 4 -> black_rooks=Utils.popBitFromBitboard(black_rooks,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 5 -> black_queens=Utils.popBitFromBitboard(black_queens,move.source_square) | Utils.getBitboardForSquare(move.target_square);
+            case 6 -> black_king=Utils.popBitFromBitboard(black_king,move.source_square) | Utils.getBitboardForSquare(move.target_square);
         }
 
         if(move.capture_flag){
@@ -1075,18 +891,10 @@ public class Board {
                     else
                         white_pawns = Utils.popBitFromBitboard(white_pawns, move.target_square);
                 }
-                case 2 -> {
-                    white_knights = Utils.popBitFromBitboard(white_knights, move.target_square);
-                }
-                case 3 -> {
-                    white_bishops = Utils.popBitFromBitboard(white_bishops, move.target_square);
-                }
-                case 4 -> {
-                    white_rooks = Utils.popBitFromBitboard(white_rooks, move.target_square);
-                }
-                case 5 -> {
-                    white_queens = Utils.popBitFromBitboard(white_queens, move.target_square);
-                }
+                case 2 -> white_knights = Utils.popBitFromBitboard(white_knights, move.target_square);
+                case 3 -> white_bishops = Utils.popBitFromBitboard(white_bishops, move.target_square);
+                case 4 -> white_rooks = Utils.popBitFromBitboard(white_rooks, move.target_square);
+                case 5 -> white_queens = Utils.popBitFromBitboard(white_queens, move.target_square);
             }
         }
     }
@@ -1097,38 +905,20 @@ public class Board {
                 if(move.promotion_flag){
                     black_pawns|=Utils.getBitboardForSquare(move.source_square);
                     switch (move.promotion_piece){
-                        case 2 -> {
-                            black_knights=Utils.popBitFromBitboard(black_knights,move.target_square);
-                        }
-                        case 3 -> {
-                            black_bishops=Utils.popBitFromBitboard(black_bishops,move.target_square);
-                        }
-                        case 4 -> {
-                            black_rooks=Utils.popBitFromBitboard(black_rooks,move.target_square);
-                        }
-                        case 5 -> {
-                            black_queens=Utils.popBitFromBitboard(black_queens,move.target_square);
-                        }
+                        case 2 -> black_knights=Utils.popBitFromBitboard(black_knights,move.target_square);
+                        case 3 -> black_bishops=Utils.popBitFromBitboard(black_bishops,move.target_square);
+                        case 4 -> black_rooks=Utils.popBitFromBitboard(black_rooks,move.target_square);
+                        case 5 -> black_queens=Utils.popBitFromBitboard(black_queens,move.target_square);
                     }
                 }
                 else
                     black_pawns=Utils.popBitFromBitboard(black_pawns,move.target_square) | Utils.getBitboardForSquare(move.source_square);
             }
-            case 2 -> {
-                black_knights=Utils.popBitFromBitboard(black_knights,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 3 -> {
-                black_bishops=Utils.popBitFromBitboard(black_bishops,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 4 -> {
-                black_rooks=Utils.popBitFromBitboard(black_rooks,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 5 -> {
-                black_queens=Utils.popBitFromBitboard(black_queens,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
-            case 6 -> {
-                black_king=Utils.popBitFromBitboard(black_king,move.target_square) | Utils.getBitboardForSquare(move.source_square);
-            }
+            case 2 -> black_knights=Utils.popBitFromBitboard(black_knights,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 3 -> black_bishops=Utils.popBitFromBitboard(black_bishops,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 4 -> black_rooks=Utils.popBitFromBitboard(black_rooks,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 5 -> black_queens=Utils.popBitFromBitboard(black_queens,move.target_square) | Utils.getBitboardForSquare(move.source_square);
+            case 6 -> black_king=Utils.popBitFromBitboard(black_king,move.target_square) | Utils.getBitboardForSquare(move.source_square);
         }
 
         if(move.capture_flag){
@@ -1139,18 +929,10 @@ public class Board {
                     else
                         white_pawns |= Utils.getBitboardForSquare(move.target_square);
                 }
-                case 2 -> {
-                    white_knights |= Utils.getBitboardForSquare(move.target_square);
-                }
-                case 3 -> {
-                    white_bishops |= Utils.getBitboardForSquare(move.target_square);
-                }
-                case 4 -> {
-                    white_rooks |= Utils.getBitboardForSquare(move.target_square);
-                }
-                case 5 -> {
-                    white_queens |= Utils.getBitboardForSquare(move.target_square);
-                }
+                case 2 -> white_knights |= Utils.getBitboardForSquare(move.target_square);
+                case 3 -> white_bishops |= Utils.getBitboardForSquare(move.target_square);
+                case 4 -> white_rooks |= Utils.getBitboardForSquare(move.target_square);
+                case 5 -> white_queens |= Utils.getBitboardForSquare(move.target_square);
             }
         }
     }
@@ -1217,7 +999,7 @@ public class Board {
                         }
                 }
 
-                //if the opponet's rook was captured update castling rights to false
+                //if the opponent's rook was captured update castling rights to false
                 if(move.piece_captured==4) {
                     if (move.target_square == 7) {
                         if(black_castling_KS_right){
@@ -1347,42 +1129,16 @@ public class Board {
             }
         }
 
-        //Zobrist hask key incremental update check
-//        long hash_from_scrath=hash_key_Zobrist();
-//        if(hash_key!=hash_from_scrath){
+        //Zobrist hash key incremental update check
+//        long hash_from_scratch=hash_key_Zobrist();
+//        if(hash_key!=hash_from_scratch){
 //            System.out.println("Move: "+move.toUCI());
 //            Utils.printBoard(this);
-//            System.out.println("hask key should be "+hash_from_scrath);
+//            System.out.println("hash key should be "+hash_from_scratch);
 //
 //            Scanner in = new Scanner(System.in);
 //            String s = in.nextLine();
 //        }
-    }
-
-    public boolean isWhiteInCheckmate(List<Move> legal_moves){
-        if(legal_moves.size()==0 && isWhiteKingInCheck(getBlackAttacksAsBitboard()))
-            return true;
-        else
-            return false;
-    }
-
-    public boolean isBlackInCheckmate(List<Move> legal_moves){
-        if(legal_moves.size()==0 && isBlackKingInCheck(getWhiteAttacksAsBitboard()))
-            return true;
-        else
-            return false;
-    }
-
-    public boolean isWhiteInStalemate(List<Move> legal_moves_white){
-        if(legal_moves_white.size()==0 && !isWhiteKingInCheck(getBlackAttacksAsBitboard()))
-            return true;
-        return false;
-    }
-
-    public boolean isBlackInStalemate(List<Move> legal_moves_black){
-        if(legal_moves_black.size()==0 && !isBlackKingInCheck(getWhiteAttacksAsBitboard()))
-            return true;
-        return false;
     }
 
     @Override

@@ -1,7 +1,5 @@
 package Moves;
 
-import java.util.Objects;
-
 import static Utils.Utils.map_files;
 
 public class Move {

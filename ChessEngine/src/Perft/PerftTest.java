@@ -2,15 +2,9 @@ package Perft;
 
 import Board.Board;
 import Moves.Move;
-import Utils.Utils;
-import jdk.jshell.execution.Util;
 
 import java.util.HashMap;
 import java.util.List;
-
-import static Moves.BishopMoves.PCTBishopMoves;
-import static Moves.RanksFilesCenter.Squares_CD_8;
-import static Moves.RanksFilesCenter.Squares_FG_8;
 
 public class PerftTest {
     public long nodes = 0;
@@ -76,11 +70,11 @@ public class PerftTest {
             Board copy_board = board.getCopyBoard();
             board.makeMove(move);
 
-            long commulative_nodes=nodes;
+            long cumulative_nodes=nodes;
 
             perftDriver(depth - 1);
 
-            long old_nodes= nodes - commulative_nodes;
+            long old_nodes= nodes - cumulative_nodes;
 
             board = copy_board.getCopyBoard();
 

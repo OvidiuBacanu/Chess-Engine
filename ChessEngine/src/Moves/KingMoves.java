@@ -1,12 +1,9 @@
 package Moves;
 
-import Board.Board;
 import Utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static Moves.RanksFilesCenter.*;
+import static Moves.RanksFilesCenter.FILE_A;
+import static Moves.RanksFilesCenter.FILE_H;
 
 public class KingMoves {
     //PCT = Pre Calculated Tables

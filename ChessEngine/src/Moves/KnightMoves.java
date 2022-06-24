@@ -1,9 +1,5 @@
 package Moves;
 
-import Board.Board;
-
-import java.util.ArrayList;
-import java.util.List;
 import Utils.Utils;
 
 import static Moves.RanksFilesCenter.*;

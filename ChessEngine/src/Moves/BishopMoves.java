@@ -1,10 +1,6 @@
 package Moves;
 
-import Board.Board;
 import Utils.Utils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static Moves.RanksFilesCenter.Anti_Diagonal_Masks;
 import static Moves.RanksFilesCenter.Diagonal_Masks;

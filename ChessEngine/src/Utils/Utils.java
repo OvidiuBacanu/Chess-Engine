@@ -45,6 +45,16 @@ public class Utils {
         return (bitboard&(1L<<square)) == getBitboardForSquare(square);
     }
 
+    public static int countBits(long bitboard){
+        int nr_bits=0;
+        while (bitboard!=0){
+            byte square= (byte) Long.numberOfTrailingZeros(bitboard);
+            bitboard= Utils.popBitFromBitboard(bitboard, square);
+            nr_bits++;
+        }
+        return nr_bits;
+    }
+
     public static void printBoard(Board board){
         long wp=board.getWhite_pawns();
         long wn=board.getWhite_knights();

@@ -10,7 +10,6 @@ import static Moves.RanksFilesCenter.*;
 
 public class WhitePawnMoves {
     //PCT = Pre Calculated Tables
-
     public static List<Move> ListWhitePawnsPseudolegalMoves(Board board){
         List<Move> moves=new ArrayList<>();
         moves.addAll(generatePseudolegalMoves1ForwardWP(board));
@@ -92,9 +91,9 @@ public class WhitePawnMoves {
 
     public static List<Move> generatePseudolegalMovesCaptureWP(Board board, boolean right){
         List<Move> moves=new ArrayList<>();
-        long white_pawns_capture=0L;
+        long white_pawns_capture;
         long white_pawns=board.getWhite_pawns();
-        int plus_square=0;
+        int plus_square;
 
         if(right){
             white_pawns_capture= PCTWhitePawnsCaptureRight(white_pawns);
