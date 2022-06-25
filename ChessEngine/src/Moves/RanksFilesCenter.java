@@ -17,7 +17,7 @@ public class RanksFilesCenter {
     public static long Squares_FG_8=96L;
 
 
-    public static long[] Rank_Masks =/*from rank1 to rank8*/
+    public static long[] Rank_Masks =/*from rank8 to rank1*/
             {
                     0xFFL, 0xFF00L, 0xFF0000L, 0xFF000000L, 0xFF00000000L, 0xFF0000000000L, 0xFF000000000000L, 0xFF00000000000000L
             };

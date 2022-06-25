@@ -83,14 +83,14 @@ public class EvaluationUtils {
     };
 
     public static int[] king_square_table =new int[]{
-            0, 0,  0,  0,  0,  0, 0, 0,
-            0, 0,  5,  5,  5,  5, 0, 0,
-            0, 5,  5, 10, 10,  5, 5, 0,
-            0, 5, 10, 20, 20, 10, 5, 0,
-            0, 5, 10, 20, 20, 10, 5, 0,
-            0, 0,  5, 10, 10,  5, 0, 0,
-            0, 5,  5, -5, -5,  5, 5, 0,
-            0, 0, 10, 0, -15, 0, 10, 0
+            0,   0,   0,   0,   0,   0,   0,   0,
+            0,   0,   5,   5,   5,   5,   0,   0,
+            0,   5,   5,  10,  10,   5,   5,   0,
+            0,   5,  10,  20,  20,  10,   5,   0,
+            0,   5,  10,  20,  20,  10,   5,   0,
+            0,   0,   5,  10,  10,   5,   0,   0,
+            0,   5,   5,  -5,  -5,   0,   5,   0,
+            0,   0,   5,   0, -15,   0,  10,   0
     };
 
     public static int[] mirrored_for_black =new int[]{
@@ -122,12 +122,12 @@ public class EvaluationUtils {
             };
     public static long[] Rank_Masks_EV =/*from rank1 to rank8*/
             {
-                    0xFFL, 0xFF00L, 0xFF0000L, 0xFF000000L, 0xFF00000000L, 0xFF0000000000L, 0xFF000000000000L, 0xFF00000000000000L
+                    0xFF00000000000000L, 0xFF000000000000L, 0xFF0000000000L, 0xFF00000000L, 0xFF000000L, 0xFF0000L, 0xFF00L, 0xFFL,
             };
 
     //pawns
-    public static int double_pawn_penalty = -10;
-    public static int isolated_pawn_penalty = -10;
+    public static int double_pawn_penalty = -25;
+    public static int isolated_pawn_penalty = -25;
     public static int[] passed_pawn_bonus = new int[]{0, 10, 30, 50, 75, 100, 150, 200};
 
     //semi-open and open files score
@@ -135,8 +135,8 @@ public class EvaluationUtils {
     public static int open_file_score=25;
 
     //king safety
-    public static int king_shield=5;
-    public static int king_attacked=3;
+    public static int king_shield_bonus=5;
+    public static int king_attacked_penalty=-3;
 
     public static int max_ply=64;
 

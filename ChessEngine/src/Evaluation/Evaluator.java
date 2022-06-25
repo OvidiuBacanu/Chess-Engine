@@ -380,6 +380,13 @@ public class Evaluator {
             long file=File_Masks_EV[file_index];
             long white_pawns_on_file=white_pawns&file;
             long black_pawns_on_file=black_pawns&file;
+            long neighbour_files=File_Masks_EV[file_index];
+            if(file_index==0)
+                neighbour_files|=File_Masks_EV[file_index+1];
+            else if(file_index==7)
+                neighbour_files|=File_Masks_EV[file_index-1];
+            else
+                neighbour_files|=File_Masks_EV[file_index-1] | File_Masks_EV[file_index+1];
 
             //check if there are any pawns on current file
             if(white_pawns_on_file!=0) {
@@ -415,18 +422,17 @@ public class Evaluator {
                 white_pawns_on_file=white_pawns&file;
                 while (white_pawns_on_file != 0) {
                     source_square = (byte) Long.numberOfTrailingZeros(white_pawns_on_file);
-
-                    if (file_index == 0) {
-                        if ((black_pawns & File_Masks_EV[file_index + 1]) == 0 && (black_pawns & File_Masks_EV[file_index]) == 0)
-                            score += get_passed_pawn_bonus_for_rank(white_pawns_on_file,true);
-                    } else if (file_index == 7) {
-                        if ((black_pawns & File_Masks_EV[file_index - 1]) == 0 && (black_pawns & File_Masks_EV[file_index]) == 0)
-                            score += get_passed_pawn_bonus_for_rank(white_pawns_on_file,true);
-                    } else {
-                        if ((black_pawns & File_Masks_EV[file_index + 1]) == 0 && (black_pawns & File_Masks_EV[file_index - 1]) == 0 && (black_pawns & File_Masks_EV[file_index]) == 0)
-                            score += get_passed_pawn_bonus_for_rank(white_pawns_on_file,true);
-                    }
                     white_pawns_on_file = Utils.popBitFromBitboard(white_pawns_on_file, source_square);
+
+                    int rank_index=8-source_square/8;
+                    long ranks=0;
+                    for(int rank=rank_index;rank<8;rank++)
+                        ranks|=Rank_Masks_EV[rank];
+
+                    long passed_pawn_mask=ranks&neighbour_files;
+
+                    if((passed_pawn_mask&black_pawns)==0)
+                        score+=get_passed_pawn_bonus_for_rank(Utils.getBitboardForSquare(source_square),true);
                 }
             }
 
@@ -463,34 +469,32 @@ public class Evaluator {
                 black_pawns_on_file=black_pawns&file;
                 while (black_pawns_on_file != 0) {
                     source_square = (byte) Long.numberOfTrailingZeros(black_pawns_on_file);
-
-                    if (file_index == 0) {
-                        if ((white_pawns & File_Masks_EV[file_index + 1]) == 0 && (white_pawns & File_Masks_EV[file_index]) == 0)
-                            score -= get_passed_pawn_bonus_for_rank(black_pawns_on_file, false);
-                    } else if (file_index == 7) {
-                        if ((white_pawns & File_Masks_EV[file_index - 1]) == 0 && (white_pawns & File_Masks_EV[file_index]) == 0)
-                            score -= get_passed_pawn_bonus_for_rank(black_pawns_on_file, false);
-                    } else {
-                        if ((white_pawns & File_Masks_EV[file_index + 1]) == 0 && (white_pawns & File_Masks_EV[file_index - 1]) == 0 && (white_pawns & File_Masks_EV[file_index]) == 0)
-                            score -= get_passed_pawn_bonus_for_rank(black_pawns_on_file, false);
-                    }
                     black_pawns_on_file = Utils.popBitFromBitboard(black_pawns_on_file, source_square);
+
+                    int rank_index=8-source_square/8-2;
+                    long ranks=0;
+                    for(int rank=rank_index;rank>=0;rank--)
+                        ranks|=Rank_Masks_EV[rank];
+
+                    long passed_pawn_mask=ranks&neighbour_files;
+
+                    if((passed_pawn_mask&white_pawns)==0)
+                        score-=get_passed_pawn_bonus_for_rank(Utils.getBitboardForSquare(source_square),false);
                 }
             }
         }
         return score;
     }
 
-    public int get_passed_pawn_bonus_for_rank(long pawns, boolean for_white){
-        int score=0;
+    public int get_passed_pawn_bonus_for_rank(long pawn, boolean for_white){
         for(int rank_index=0;rank_index<8;rank_index++)
-            if((pawns&Rank_Masks_EV[rank_index])!=0) {
+            if((pawn&Rank_Masks_EV[rank_index])!=0) {
                 if (for_white)
-                    score += passed_pawn_bonus[7-rank_index];
+                    return passed_pawn_bonus[rank_index];
                 else
-                    score += passed_pawn_bonus[rank_index];
+                    return passed_pawn_bonus[7-rank_index];
             }
-        return score;
+        return 0;
     }
 
     public int evaluate_open_semi_open_files(){
@@ -588,11 +592,11 @@ public class Evaluator {
         long white_pieces_attacks=board.getWhiteAttacksAsBitboard();
         long black_pieces_attacks=board.getBlackAttacksAsBitboard();
 
-        score+=Utils.countBits(white_king_attacks&white_pieces)*king_shield;
-        score-=Utils.countBits(black_king_attacks&black_pieces)*king_shield;
+        score+=Utils.countBits(white_king_attacks&white_pieces)*king_shield_bonus;
+        score-=Utils.countBits(black_king_attacks&black_pieces)*king_shield_bonus;
 
-        score-=Utils.countBits(white_king_attacks&black_pieces_attacks)*king_attacked;
-        score+=Utils.countBits(black_king_attacks&white_pieces_attacks)*king_attacked;
+        score+=Utils.countBits(white_king_attacks&black_pieces_attacks)*king_attacked_penalty;
+        score-=Utils.countBits(black_king_attacks&white_pieces_attacks)*king_attacked_penalty;
         return score;
     }
 
@@ -623,6 +627,8 @@ public class Evaluator {
                 if (second_killer_moves[ply].equals(move))
                     return 8000;
         }
+        if(move.castling_flag)
+            return 7000;
         return 0;
     }
 
