@@ -136,7 +136,7 @@ public class EvaluationUtils {
 
     //king safety
     public static int king_shield_bonus=5;
-    public static int king_attacked_penalty=-3;
+    public static int king_attacked_penalty=-5;
 
     public static int max_ply=64;
 

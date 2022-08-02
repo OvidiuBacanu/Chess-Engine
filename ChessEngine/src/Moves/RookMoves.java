@@ -19,8 +19,8 @@ public class RookMoves {
         long possibilities_horizontal_final=possibilities_horizontal&Rank_Masks[rank_index];
 
         //vertical
-        long possibilities_vertical_up=(occupied_squares&File_Masks[file_index]) - (2 * rook);
-        long possibilities_vertical_down= Long.reverse(Long.reverse(occupied_squares&File_Masks[file_index]) - (2 * Long.reverse(rook)));
+        long possibilities_vertical_down=(occupied_squares&File_Masks[file_index]) - (2 * rook);
+        long possibilities_vertical_up= Long.reverse(Long.reverse(occupied_squares&File_Masks[file_index]) - (2 * Long.reverse(rook)));
         long possibilities_vertical = possibilities_vertical_up^possibilities_vertical_down;
         long possibilities_vertical_final=possibilities_vertical&File_Masks[file_index];
 

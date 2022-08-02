@@ -31,14 +31,12 @@ public class Board {
     private long black_queens;
     private long black_king;
 
-
     //KS= king side, QS=queen side
     private boolean white_castling_KS_right;
     private boolean white_castling_QS_right;
 
     private boolean black_castling_KS_right;
     private boolean black_castling_QS_right;
-
 
     //variable to see which player has to move
     // if white_turn=true it's white's turn to move else it's black's turn
