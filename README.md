@@ -1,6 +1,7 @@
 # Java Chess Engine
 A powerful chess engine implemented in Java and optimized with IntelliJ IDEA. This engine features Negamax, Alpha-Beta pruning, Transposition Tables, and Bitboards for efficient game analysis. It utilizes the UCI protocol and can be integrated with a UCI-compatible GUI for playing against or analyzing games.
 
+It passes the performance test (Perft), meaning all possible moves are generated and handled correctly.
 After testing against other engines, it has a 50% chance of winning against Stockfish with a 1650 ELO rating limit.
 
 ## Features
